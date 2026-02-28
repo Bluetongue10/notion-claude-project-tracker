@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+# bin/sync-notion — full sync of all Claude projects to Notion
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+source "$ROOT_DIR/lib/config.sh"
+source "$ROOT_DIR/lib/projects.sh"
+source "$ROOT_DIR/lib/notion.sh"
+
+load_config
+
+# Load or create database ID
+if [[ -f "$NOTION_DB_ID_FILE" ]]; then
+  DB_ID=$(cat "$NOTION_DB_ID_FILE")
+else
+  echo "No Notion database found. Run setup.sh first." >&2
+  exit 1
+fi
+
+echo "Syncing Claude projects to Notion database $DB_ID..."
+
+# Determine status: active if last session within 2 hours, else paused
+is_active() {
+  local last_session="$1"
+  local two_hours_ago
+  two_hours_ago=$(date -u -v-2H +"%Y-%m-%dT%H:%M:%S.000Z" 2>/dev/null \
+    || date -u -d "2 hours ago" +"%Y-%m-%dT%H:%M:%S.000Z")
+  [[ "$last_session" > "$two_hours_ago" ]]
+}
+
+count=0
+while IFS= read -r project_json; do
+  name=$(echo "$project_json"      | jq -r '.name')
+  path=$(echo "$project_json"      | jq -r '.path')
+  git_branch=$(echo "$project_json" | jq -r '.git_branch')
+  last_session=$(echo "$project_json" | jq -r '.last_session')
+  session_count=$(echo "$project_json" | jq -r '.session_count')
+  session_id=$(echo "$project_json" | jq -r '.session_id')
+
+  if is_active "$last_session"; then
+    status="Active"
+  else
+    status="Paused"
+  fi
+
+  echo "  → $name ($status)"
+  upsert_project "$DB_ID" "$name" "$path" "$status" \
+    "$git_branch" "$last_session" "$session_count" "$session_id" > /dev/null
+  ((count++))
+done < <(get_projects)
+
+echo "Done. Synced $count project(s)."
