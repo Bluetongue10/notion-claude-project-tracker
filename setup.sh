@@ -2,14 +2,14 @@
 # setup.sh — one-time setup: create Notion DB, install global Claude Code hooks
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/lib/config.sh"
-source "$SCRIPT_DIR/lib/notion.sh"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$ROOT_DIR/lib/config.sh"
+source "$ROOT_DIR/lib/notion.sh"
 
 echo "=== Notion Claude Project Tracker Setup ==="
 
 # 1. Load config
-if [[ ! -f "$SCRIPT_DIR/.env" ]]; then
+if [[ ! -f "$ROOT_DIR/.env" ]]; then
   echo "Copy .env.example to .env and fill in NOTION_TOKEN and NOTION_PARENT_PAGE_ID."
   exit 1
 fi
@@ -27,8 +27,8 @@ echo "  ✓ Database created: $DB_ID"
 
 # 3. Install Claude Code global hooks
 CLAUDE_SETTINGS="$HOME/.claude/settings.json"
-HOOK_START="$SCRIPT_DIR/hooks/session-start.sh"
-HOOK_STOP="$SCRIPT_DIR/hooks/session-stop.sh"
+HOOK_START="$ROOT_DIR/hooks/session-start.sh"
+HOOK_STOP="$ROOT_DIR/hooks/session-stop.sh"
 
 echo "Installing Claude Code hooks..."
 # Use jq to merge hooks into existing settings.json
@@ -46,7 +46,7 @@ fi
 
 # 4. Run initial sync
 echo "Running initial sync..."
-"$SCRIPT_DIR/bin/sync-notion"
+"$ROOT_DIR/bin/sync-notion"
 
 echo ""
 echo "Setup complete! Open your Notion page to see the Claude Projects Kanban."

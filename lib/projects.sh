@@ -51,7 +51,7 @@ get_projects() {
     project_name=$(basename "$project_path")
     [[ -z "$project_name" ]] && project_name=$(basename "$project_dir")
 
-    jq -n \
+    jq -cn \
       --arg name "$project_name" \
       --arg path "$project_path" \
       --arg git_branch "$git_branch" \
