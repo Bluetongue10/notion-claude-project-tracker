@@ -19,10 +19,10 @@ get_projects() {
     session_count=$(find "$project_dir" -maxdepth 1 -name '*.jsonl' | wc -l | tr -d ' ')
     [[ "$session_count" -eq 0 ]] && continue
 
-    # Most recent JSONL file
+    # Most recent JSONL file (ls -t sorts by mtime descending)
     local latest_jsonl
-    latest_jsonl=$(find "$project_dir" -maxdepth 1 -name '*.jsonl' -newer /dev/null \
-      | xargs ls -t 2>/dev/null | head -1)
+    latest_jsonl=$(find "$project_dir" -maxdepth 1 -name '*.jsonl' -print0 \
+      | xargs -0 ls -t 2>/dev/null | head -1)
     [[ -z "$latest_jsonl" ]] && continue
 
     # Last modified time as ISO 8601
