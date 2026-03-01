@@ -1793,19 +1793,39 @@ function renderFocused(proj) {
     }
     if (agents.length > 0) {
       html += '<div class="fun-panel-section" style="margin-top:8px">Agents</div>'
+      const details = Array.isArray(proj.agent_details) ? proj.agent_details : []
       agents.forEach((name, i) => {
-        const emoji = agentEmoji(i)
-        html += `<div class="fun-satellite-card" data-detail="${(proj.agents || name).replace(/"/g,'&quot;')}">
-          ${emoji} ${name}
-          <div class="fun-satellite-detail">${proj.agents || name}</div>
+        const emoji  = agentEmoji(i)
+        const detail = details[i] || {}
+        const status = detail.status || ''
+        const type   = detail.type   || ''
+        const model  = detail.model  || ''
+        const statusDot = status === 'active' ? '#3fb950'
+                        : status === 'done'   ? '#8b949e'
+                        :                       '#e3b341'
+        const statusLabel = status || 'unknown'
+        const subLines = [
+          type  ? `role: ${type}` : '',
+          model ? `model: ${model.replace('claude-','').replace(/-\d{8}$/,'')}` : '',
+        ].filter(Boolean).join(' · ')
+        html += `<div class="fun-satellite-card">
+          <div style="display:flex;align-items:center;gap:7px">
+            <span>${emoji}</span>
+            <span style="flex:1;font-weight:500;color:var(--text)">${name}</span>
+            <span style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text-muted)">
+              <span style="width:6px;height:6px;border-radius:50%;background:${statusDot};display:inline-block;flex-shrink:0"></span>
+              ${statusLabel}
+            </span>
+          </div>
+          ${subLines ? `<div class="fun-satellite-detail" style="display:block;margin-top:4px">${subLines}</div>` : ''}
         </div>`
       })
     }
     rightPanel.innerHTML = html
   }
 
-  // Toggle expand on satellite card click
-  rightPanel.querySelectorAll('.fun-satellite-card').forEach(card => {
+  // Toggle expand on worktree card click (agent cards show details inline)
+  rightPanel.querySelectorAll('.fun-satellite-card[data-detail]').forEach(card => {
     card.addEventListener('click', () => card.classList.toggle('expanded'))
   })
   funEl.appendChild(rightPanel)
