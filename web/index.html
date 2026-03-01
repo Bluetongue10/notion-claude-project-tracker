@@ -203,6 +203,7 @@
     .col-review .card::before { background: var(--review); }
     .col-done   .card::before { background: var(--done); }
 
+    .card { cursor: pointer; }
     .card[draggable="true"] { cursor: grab; }
     .card[draggable="true"]:hover {
       border-color: var(--border2);
@@ -860,6 +861,11 @@ function makeCard(proj, col) {
 
   const canDrag = col !== 'Active'
   card.draggable = canDrag
+
+  card.addEventListener('click', e => {
+    if (e.defaultPrevented) return
+    window.open('/project?path=' + encodeURIComponent(proj.path), '_blank')
+  })
 
   const name = el('div', 'card-name', proj.name || shortPath(proj.path))
   card.appendChild(name)

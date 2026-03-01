@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project Graph</title>
+  <style>
+    :root {
+      --bg:         #0d1117;
+      --surface:    #161b22;
+      --border:     #30363d;
+      --text:       #e6edf3;
+      --text-muted: #7d8590;
+      --active:     #3fb950;
+      --paused:     #e3b341;
+      --font-ui:    -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      --font-mono:  'SF Mono', 'Cascadia Code', Menlo, Monaco, monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-ui);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      padding: 14px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(13,17,23,0.92);
+      backdrop-filter: blur(8px);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .back-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 12px;
+      font-family: var(--font-ui);
+      padding: 5px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: color 0.1s, border-color 0.1s;
+    }
+    .back-btn:hover { color: var(--text); border-color: #3d444d; }
+
+    .header-info { display: flex; flex-direction: column; gap: 2px; }
+
+    h1 {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .header-meta {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+    }
+
+    .status-pill {
+      display: inline-block;
+      padding: 1px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+    .status-pill.active  { color: var(--active); background: rgba(63,185,80,0.1); border: 1px solid rgba(63,185,80,0.3); }
+    .status-pill.paused  { color: var(--paused); background: rgba(227,179,65,0.1); border: 1px solid rgba(227,179,65,0.3); }
+
+    .header-right {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .conn-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #484f58;
+      animation: pulse 2.5s ease-in-out infinite;
+    }
+    .conn-dot.live { background: var(--active); }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+
+    .refresh-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 11px;
+      font-family: var(--font-mono);
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .refresh-btn:hover { color: var(--text); border-color: #3d444d; }
+
+    #graph {
+      flex: 1;
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      background-image: radial-gradient(circle, #30363d 1px, transparent 1px);
+      background-size: 24px 24px;
+      overflow: auto;
+    }
+
+    #graph-inner {
+      width: 100%;
+    }
+
+    #graph-inner svg {
+      width: 100% !important;
+      height: auto;
+      display: block;
+      min-height: 400px;
+    }
+
+    .error-msg {
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      padding: 48px;
+      text-align: center;
+    }
+
+    #loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 14px;
+      z-index: 100;
+      transition: opacity 0.3s;
+    }
+    #loading-overlay.fade { opacity: 0; pointer-events: none; }
+
+    .spinner {
+      width: 26px;
+      height: 26px;
+      border: 2px solid var(--border);
+      border-top-color: var(--active);
+      border-radius: 50%;
+      animation: spin 0.65s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #loading-overlay p { font-size: 12px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+
+<div id="loading-overlay">
+  <div class="spinner"></div>
+  <p>Loading project graph…</p>
+</div>
+
+<header>
+  <a class="back-btn" href="/">← Board</a>
+  <div class="header-info">
+    <h1 id="proj-name">Loading…</h1>
+    <div class="header-meta" id="proj-meta"></div>
+  </div>
+  <div class="header-right">
+    <span class="conn-dot" id="conn-dot"></span>
+    <button class="refresh-btn" id="refresh-btn">↻ Refresh</button>
+  </div>
+</header>
+
+<div id="graph">
+  <div id="graph-inner"></div>
+</div>
+
+<script src="/web/mermaid.min.js"></script>
+<script>
+'use strict'
+
+// Read ?path= from URL
+const params = new URLSearchParams(location.search)
+const projPath = params.get('path') || ''
+
+if (!projPath) {
+  document.getElementById('proj-name').textContent = 'No project specified'
+  document.getElementById('loading-overlay').classList.add('fade')
+}
+
+// Initialize Mermaid
+mermaid.initialize({
+  startOnLoad: false,
+  theme: 'dark',
+  themeVariables: {
+    background:          '#0d1117',
+    mainBkg:             '#161b22',
+    nodeBorder:          '#30363d',
+    lineColor:           '#7d8590',
+    clusterBkg:          '#0d1117',
+    clusterBorder:       '#30363d',
+    titleColor:          '#e6edf3',
+    edgeLabelBackground: '#0d1117',
+    nodeTextColor:       '#e6edf3',
+  }
+})
+
+let rendering = false
+
+async function renderGraph() {
+  if (rendering) return
+  rendering = true
+  try {
+    const dsl = await fetch('/api/graph?path=' + encodeURIComponent(projPath)).then(r => r.text())
+    const { svg } = await mermaid.render('proj-graph-' + Date.now(), dsl)
+    const inner = document.getElementById('graph-inner')
+    inner.innerHTML = svg
+    const svgEl = inner.querySelector('svg')
+    if (svgEl) {
+      svgEl.setAttribute('width', '100%')
+      svgEl.removeAttribute('height')
+      svgEl.style.minHeight = '400px'
+    }
+  } catch (err) {
+    document.getElementById('graph-inner').innerHTML =
+      '<div class="error-msg">Failed to render graph: ' + err.message + '</div>'
+  } finally {
+    rendering = false
+  }
+}
+
+// Populate header from project data via SSE
+const es = new EventSource('/events')
+const dot = document.getElementById('conn-dot')
+const overlay = document.getElementById('loading-overlay')
+
+es.onopen = () => { dot.className = 'conn-dot live' }
+
+es.onmessage = e => {
+  const { projects } = JSON.parse(e.data)
+  const proj = (projects || []).find(p => p.path === projPath)
+  if (proj) {
+    document.title = proj.name + ' — Project Graph'
+    document.getElementById('proj-name').textContent = proj.name
+
+    const statusClass = proj.status === 'Active' ? 'active' : 'paused'
+    const pill = `<span class="status-pill ${statusClass}">${proj.status}</span>`
+    const commit = proj.last_commit ? ` · ${proj.last_commit}` : ''
+    document.getElementById('proj-meta').innerHTML =
+      `${proj.git_branch}${commit}${pill}`
+  }
+
+  renderGraph()
+
+  if (overlay && !overlay.classList.contains('fade')) {
+    overlay.classList.add('fade')
+    setTimeout(() => overlay.remove(), 350)
+  }
+}
+
+es.onerror = () => { dot.className = 'conn-dot' }
+
+document.getElementById('refresh-btn').addEventListener('click', renderGraph)
+</script>
+</body>
+</html>
