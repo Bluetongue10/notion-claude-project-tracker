@@ -259,6 +259,17 @@
       margin-bottom: 5px;
     }
 
+    .card-commit {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      padding-left: 5px;
+      margin-bottom: 5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
     .card-path {
       font-size: 10px;
       color: var(--text-subtle);
@@ -514,6 +525,12 @@ function makeCard(proj, col) {
     if (proj.agents)    row2.appendChild(badge('◈ ' + proj.agents, 'badge-agents'))
     if (proj.worktrees) row2.appendChild(badge('⎇ ' + proj.worktrees, 'badge-wt'))
     card.appendChild(row2)
+  }
+
+  // Last commit
+  if (proj.last_commit) {
+    const commit = el('div', 'card-commit', '↑ ' + proj.last_commit)
+    card.appendChild(commit)
   }
 
   // Path

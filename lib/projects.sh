@@ -97,10 +97,11 @@ get_projects() {
     project_name=$(basename "$project_path")
     [[ -z "$project_name" ]] && project_name=$(basename "$project_dir")
 
-    local worktrees agents proj_status
+    local worktrees agents proj_status last_commit
     worktrees=$(get_worktrees "$project_path")
     agents=$(get_agents "$project_dir" "$session_id")
     is_active "$last_session_iso" && proj_status="Active" || proj_status="Paused"
+    last_commit=$(git -C "$project_path" log -1 --pretty=%s 2>/dev/null || echo "")
 
     jq -cn \
       --arg name "$project_name" \
@@ -114,8 +115,10 @@ get_projects() {
       --arg agents "$agents" \
       --arg status "$proj_status" \
       --arg project_dir "$project_dir" \
+      --arg last_commit "$last_commit" \
       '{name:$name, path:$path, git_branch:$git_branch, last_session:$last_session,
         session_count:$session_count, session_id:$session_id, slug:$slug,
-        worktrees:$worktrees, agents:$agents, status:$status, project_dir:$project_dir}'
+        worktrees:$worktrees, agents:$agents, status:$status, project_dir:$project_dir,
+        last_commit:$last_commit}'
   done
 }
