@@ -1612,6 +1612,117 @@ function renderFocused(proj) {
   ].join(';')
   scene.appendChild(planet)
 
+  // ── Orbiting satellites around focused planet ──
+  const worktreesOrbit = parseWorktrees(proj.worktrees)
+  const agentsOrbit    = parseSatellites(proj.agents)
+  let focusCss = ''
+
+  // Worktrees orbit at inner ring (moons)
+  const moonOrbitR = pr + 42
+  worktreesOrbit.forEach((wt, mi) => {
+    const dur      = '12s'
+    const start    = (mi / Math.max(worktreesOrbit.length, 1)) * 360
+    const armKf    = `kf-fmoon-arm-${mi}`
+    const lblKf    = `kf-fmoon-lbl-${mi}`
+    focusCss += `@keyframes ${armKf}{from{transform:rotate(${start}deg)}to{transform:rotate(${start + 360}deg)}}\n`
+    focusCss += `@keyframes ${lblKf}{from{transform:rotate(${-start}deg)}to{transform:rotate(${-(start + 360)}deg)}}\n`
+
+    const arm = document.createElement('div')
+    arm.style.cssText = [
+      'position:absolute', 'left:50%', 'top:50%', 'transform-origin:0 0',
+      `animation:${armKf} ${dur} linear infinite`,
+    ].join(';')
+
+    const moonEl = document.createElement('div')
+    moonEl.className = 'fun-moon'
+    moonEl.style.cssText = [
+      'width:10px', 'height:10px',
+      `left:${moonOrbitR - 5}px`, 'top:-5px',
+    ].join(';')
+
+    const branch = wt.replace(/^.*\//, '').substring(0, 12)
+    const mLbl = document.createElement('div')
+    mLbl.className = 'fun-moon-label'
+    mLbl.textContent = '📡 ' + branch
+    mLbl.style.cssText = [
+      'left:16px', 'top:-7px',
+      `animation:${lblKf} ${dur} linear infinite`,
+    ].join(';')
+
+    arm.appendChild(moonEl)
+    arm.appendChild(mLbl)
+    scene.appendChild(arm)
+  })
+
+  // Agents orbit at outer ring
+  const agentOrbitR = pr + 85
+  agentsOrbit.forEach((name, ai) => {
+    const dur   = `${16 + ai * 2}s`
+    const start = (ai / Math.max(agentsOrbit.length, 1)) * 360
+    const armKf = `kf-fagent-arm-${ai}`
+    const lblKf = `kf-fagent-lbl-${ai}`
+    focusCss += `@keyframes ${armKf}{from{transform:rotate(${start}deg)}to{transform:rotate(${start + 360}deg)}}\n`
+    focusCss += `@keyframes ${lblKf}{from{transform:rotate(${-start}deg)}to{transform:rotate(${-(start + 360)}deg)}}\n`
+
+    const arm = document.createElement('div')
+    arm.style.cssText = [
+      'position:absolute', 'left:50%', 'top:50%', 'transform-origin:0 0',
+      `animation:${armKf} ${dur} linear infinite`,
+    ].join(';')
+
+    const emoji = agentEmoji(ai)
+    const agEl = document.createElement('div')
+    agEl.className = 'fun-agent'
+    agEl.textContent = emoji
+    agEl.style.cssText = [
+      `left:${agentOrbitR - 9}px`, 'top:-9px',
+      `animation-duration:${3 + ai * 0.5}s`,
+      'animation-delay:' + (ai * 0.65) + 's',
+    ].join(';')
+
+    const aLbl = document.createElement('div')
+    aLbl.className = 'fun-moon-label'
+    aLbl.textContent = name
+    aLbl.style.cssText = [
+      'left:20px', 'top:-7px',
+      `animation:${lblKf} ${dur} linear infinite`,
+    ].join(';')
+
+    arm.appendChild(agEl)
+    arm.appendChild(aLbl)
+    scene.appendChild(arm)
+  })
+
+  // Orbit rings for the satellites (visual guides)
+  if (worktreesOrbit.length > 0) {
+    const r = moonOrbitR
+    const ringEl = document.createElement('div')
+    ringEl.className = 'fun-orbit-ring'
+    ringEl.style.cssText = [
+      `width:${r * 2}px`, `height:${r * 2}px`,
+      `left:calc(50% - ${r}px)`, `top:calc(50% - ${r}px)`,
+      'opacity:0.25',
+    ].join(';')
+    rings.appendChild(ringEl)
+  }
+  if (agentsOrbit.length > 0) {
+    const r = agentOrbitR
+    const ringEl = document.createElement('div')
+    ringEl.className = 'fun-orbit-ring'
+    ringEl.style.cssText = [
+      `width:${r * 2}px`, `height:${r * 2}px`,
+      `left:calc(50% - ${r}px)`, `top:calc(50% - ${r}px)`,
+      'opacity:0.18',
+    ].join(';')
+    rings.appendChild(ringEl)
+  }
+
+  if (focusCss) {
+    funStyleEl = document.createElement('style')
+    funStyleEl.textContent = focusCss
+    document.head.appendChild(funStyleEl)
+  }
+
   // Back button
   const backBtn = document.createElement('button')
   backBtn.className = 'fun-back-btn'
