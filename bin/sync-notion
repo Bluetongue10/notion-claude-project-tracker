@@ -20,6 +20,7 @@ else
 fi
 
 echo "Syncing Claude projects to Notion database $DB_ID..."
+patch_database_properties "$DB_ID"
 
 # Determine status: active if last session within 2 hours, else paused
 is_active() {
@@ -38,6 +39,8 @@ while IFS= read -r project_json; do
   last_session=$(echo "$project_json" | jq -r '.last_session')
   session_count=$(echo "$project_json" | jq -r '.session_count')
   session_id=$(echo "$project_json" | jq -r '.session_id')
+  worktrees=$(echo "$project_json"  | jq -r '.worktrees // ""')
+  agents=$(echo "$project_json"     | jq -r '.agents    // ""')
 
   if is_active "$last_session"; then
     status="Active"
@@ -47,7 +50,8 @@ while IFS= read -r project_json; do
 
   echo "  → $name ($status)"
   upsert_project "$DB_ID" "$name" "$path" "$status" \
-    "$git_branch" "$last_session" "$session_count" "$session_id" > /dev/null
+    "$git_branch" "$last_session" "$session_count" "$session_id" \
+    "$worktrees" "$agents" > /dev/null
   ((count++))
 done < <(get_projects)
 

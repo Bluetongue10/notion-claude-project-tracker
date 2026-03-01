@@ -1,8 +1,46 @@
 #!/usr/bin/env bash
 # lib/projects.sh — discover and parse Claude Code projects
 
+get_worktrees() {
+  local project_path="$1"
+  [[ -d "$project_path" ]] || { echo ""; return 0; }
+  local worktree_output
+  worktree_output=$(git -C "$project_path" worktree list 2>/dev/null) || { echo ""; return 0; }
+  local branches
+  branches=$(echo "$worktree_output" | tail -n +2 | sed -n 's/.*\[\(.*\)\]$/\1/p')
+  [[ -z "$branches" ]] && { echo ""; return 0; }
+  echo "$branches" | paste -sd ',' - | sed 's/,/, /g'
+}
+
+get_agents() {
+  local project_dir="$1" session_id="$2"
+  [[ -z "$session_id" ]] && { echo ""; return 0; }
+  local claude_root
+  claude_root=$(dirname "$(dirname "$project_dir")")
+  local team_name=""
+  local session_jsonl="$project_dir/${session_id}.jsonl"
+  if [[ -f "$session_jsonl" ]]; then
+    team_name=$(head -1 "$session_jsonl" 2>/dev/null | jq -r '.teamName // empty' 2>/dev/null)
+  fi
+  if [[ -n "$team_name" ]]; then
+    local team_config="$claude_root/teams/$team_name/config.json"
+    if [[ -f "$team_config" ]]; then
+      local members
+      members=$(jq -r '.members[].name' "$team_config" 2>/dev/null | paste -sd ',' - | sed 's/,/, /g')
+      [[ -n "$members" ]] && { echo "$members"; return 0; }
+    fi
+  fi
+  local subagents_dir="$project_dir/$session_id/subagents"
+  if [[ -d "$subagents_dir" ]]; then
+    local agent_count
+    agent_count=$(find "$subagents_dir" -maxdepth 1 -name 'agent-*.jsonl' 2>/dev/null | wc -l | tr -d ' ')
+    [[ "$agent_count" -gt 0 ]] && { echo "${agent_count} agent(s)"; return 0; }
+  fi
+  echo ""
+}
+
 # get_projects: prints one JSON object per line, each representing a project
-# Output fields: name, path, git_branch, last_session_iso, session_count, session_id
+# Output fields: name, path, git_branch, last_session_iso, session_count, session_id, worktrees, agents
 get_projects() {
   local projects_dir="${CLAUDE_PROJECTS_DIR:-$HOME/.claude/projects}"
 
@@ -51,6 +89,10 @@ get_projects() {
     project_name=$(basename "$project_path")
     [[ -z "$project_name" ]] && project_name=$(basename "$project_dir")
 
+    local worktrees agents
+    worktrees=$(get_worktrees "$project_path")
+    agents=$(get_agents "$project_dir" "$session_id")
+
     jq -cn \
       --arg name "$project_name" \
       --arg path "$project_path" \
@@ -59,7 +101,10 @@ get_projects() {
       --argjson session_count "$session_count" \
       --arg session_id "$session_id" \
       --arg slug "$slug" \
+      --arg worktrees "$worktrees" \
+      --arg agents "$agents" \
       '{name:$name, path:$path, git_branch:$git_branch, last_session:$last_session,
-        session_count:$session_count, session_id:$session_id, slug:$slug}'
+        session_count:$session_count, session_id:$session_id, slug:$slug,
+        worktrees:$worktrees, agents:$agents}'
   done
 }

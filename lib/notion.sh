@@ -56,11 +56,20 @@ find_page_by_path() {
   echo "$resp" | jq -r '.results[0].id // empty'
 }
 
+# patch_database_properties: ensure Worktrees and Agents columns exist in the database
+patch_database_properties() {
+  local db_id="$1"
+  _notion_curl PATCH "databases/$db_id" \
+    '{"properties":{"Worktrees":{"rich_text":{}},"Agents":{"rich_text":{}}}}' > /dev/null
+}
+
 # upsert_project: create or update a Notion card for a project
-# Args: db_id, name, path, status, git_branch, last_session, session_count, session_id
+# Args: db_id, name, path, status, git_branch, last_session, session_count, session_id,
+#       worktrees, agents
 upsert_project() {
   local db_id="$1" name="$2" path="$3" status="$4"
   local git_branch="$5" last_session="$6" session_count="$7" session_id="$8"
+  local worktrees="${9:-}" agents="${10:-}"
 
   local existing_id
   existing_id=$(find_page_by_path "$db_id" "$path")
@@ -74,6 +83,8 @@ upsert_project() {
     --arg last_session "$last_session" \
     --argjson count "$session_count" \
     --arg sid "$session_id" \
+    --arg worktrees "$worktrees" \
+    --arg agents "$agents" \
     '{
       "Name":          {title:[{text:{content:$name}}]},
       "Status":        {select:{name:$status}},
@@ -81,7 +92,9 @@ upsert_project() {
       "Git Branch":    {rich_text:[{text:{content:$branch}}]},
       "Last Session":  {date:{start:$last_session}},
       "Session Count": {number:$count},
-      "Session ID":    {rich_text:[{text:{content:$sid}}]}
+      "Session ID":    {rich_text:[{text:{content:$sid}}]},
+      "Worktrees":     {rich_text:[{text:{content:$worktrees}}]},
+      "Agents":        {rich_text:[{text:{content:$agents}}]}
     }')
 
   if [[ -n "$existing_id" ]]; then
