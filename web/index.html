@@ -259,17 +259,6 @@
       margin-bottom: 5px;
     }
 
-    .card-commit {
-      font-size: 10px;
-      color: var(--text-muted);
-      font-family: var(--font-mono);
-      padding-left: 5px;
-      margin-bottom: 5px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
     .card-path {
       font-size: 10px;
       color: var(--text-subtle);
@@ -382,6 +371,341 @@
     @keyframes spin { to { transform: rotate(360deg); } }
 
     #loading p { font-size: 12px; color: var(--text-muted); }
+
+    /* ══════════════════════════════════════════════════════════
+       FUN TAB — SPACE STATION WORLD
+       Each project = a planet orbiting a central star.
+       Worktrees = moons. Agents = astronauts tethered nearby.
+       Active: fast bright orbit. Paused: frozen + sleeping.
+       Needs Review: pulsing blue scan. Done: dim slow drift.
+    ══════════════════════════════════════════════════════════ */
+
+    #fun {
+      display: none;
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+      background: radial-gradient(ellipse at 50% 60%, #060a14 0%, #000204 100%);
+    }
+
+    #fun-stars {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    /* Nebula glow blobs — pure CSS */
+    #fun-nebula {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    #fun-nebula::before {
+      content: '';
+      position: absolute;
+      width: 700px; height: 500px;
+      top: 5%; left: 2%;
+      background: radial-gradient(ellipse, rgba(56,139,253,0.05) 0%, transparent 70%);
+      border-radius: 50%;
+      filter: blur(60px);
+    }
+    #fun-nebula::after {
+      content: '';
+      position: absolute;
+      width: 600px; height: 400px;
+      bottom: 10%; right: 5%;
+      background: radial-gradient(ellipse, rgba(63,185,80,0.06) 0%, transparent 70%);
+      border-radius: 50%;
+      filter: blur(70px);
+    }
+
+    /* Central star */
+    #fun-star {
+      position: absolute;
+      width: 56px;
+      height: 56px;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+      pointer-events: none;
+    }
+    #fun-star-core {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #fff9e0 0%, #ffe566 28%, #ff9500 60%, #c04000 100%);
+      box-shadow:
+        0 0 18px 5px rgba(255,210,50,0.75),
+        0 0 55px 18px rgba(255,140,0,0.38),
+        0 0 110px 38px rgba(255,70,0,0.16);
+      animation: star-breathe 4s ease-in-out infinite;
+    }
+    @keyframes star-breathe {
+      0%, 100% {
+        box-shadow:
+          0 0 18px 5px rgba(255,210,50,0.75),
+          0 0 55px 18px rgba(255,140,0,0.38),
+          0 0 110px 38px rgba(255,70,0,0.16);
+        transform: scale(1);
+      }
+      50% {
+        box-shadow:
+          0 0 26px 9px rgba(255,225,80,0.9),
+          0 0 75px 26px rgba(255,160,0,0.5),
+          0 0 150px 52px rgba(255,90,0,0.22);
+        transform: scale(1.07);
+      }
+    }
+    #fun-star-label {
+      position: absolute;
+      top: 62px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 9px;
+      font-family: var(--font-mono);
+      color: rgba(255,200,70,0.65);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    /* Orbit rings — subtle decorative circles */
+    .fun-orbit-ring {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.035);
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    /* The rotating orbit arm — zero-size, positioned at star center */
+    .fun-orbit-arm {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform-origin: 0 0;
+    }
+
+    /* Planet body */
+    .fun-planet {
+      position: absolute;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: transform 0.2s;
+      z-index: 15;
+    }
+    .fun-planet:hover {
+      transform: scale(1.2) !important;
+      z-index: 50;
+    }
+
+    /* Active planet */
+    .fun-planet.status-Active {
+      background: radial-gradient(circle at 33% 33%, #b8f5c8, #3fb950 42%, #1a5225 90%);
+      box-shadow:
+        0 0 14px 4px rgba(63,185,80,0.65),
+        0 0 35px 10px rgba(63,185,80,0.28),
+        inset -4px -5px 12px rgba(0,0,0,0.45);
+      animation: pulse-active 2.4s ease-in-out infinite;
+    }
+    @keyframes pulse-active {
+      0%, 100% {
+        box-shadow:
+          0 0 14px 4px rgba(63,185,80,0.65),
+          0 0 35px 10px rgba(63,185,80,0.28),
+          inset -4px -5px 12px rgba(0,0,0,0.45);
+      }
+      50% {
+        box-shadow:
+          0 0 22px 8px rgba(63,185,80,0.9),
+          0 0 55px 18px rgba(63,185,80,0.45),
+          inset -4px -5px 12px rgba(0,0,0,0.45);
+      }
+    }
+
+    /* Paused planet */
+    .fun-planet.status-Paused {
+      background: radial-gradient(circle at 33% 33%, #ead8a0, #c9982a 45%, #5a3f08 90%);
+      box-shadow:
+        0 0 6px 2px rgba(200,150,40,0.22),
+        inset -4px -5px 12px rgba(0,0,0,0.55);
+      filter: brightness(0.6) saturate(0.55);
+    }
+
+    /* Needs Review planet */
+    .fun-planet.status-Needs-Review {
+      background: radial-gradient(circle at 33% 33%, #b0d0ff, #388bfd 40%, #102848 90%);
+      box-shadow:
+        0 0 14px 4px rgba(56,139,253,0.55),
+        0 0 34px 10px rgba(56,139,253,0.22),
+        inset -4px -5px 12px rgba(0,0,0,0.45);
+      animation: pulse-review 3s ease-in-out infinite;
+    }
+    @keyframes pulse-review {
+      0%, 100% {
+        box-shadow:
+          0 0 14px 4px rgba(56,139,253,0.55),
+          0 0 34px 10px rgba(56,139,253,0.22),
+          inset -4px -5px 12px rgba(0,0,0,0.45);
+      }
+      50% {
+        box-shadow:
+          0 0 22px 8px rgba(56,139,253,0.85),
+          0 0 50px 16px rgba(56,139,253,0.38),
+          inset -4px -5px 12px rgba(0,0,0,0.45);
+      }
+    }
+
+    /* Done planet */
+    .fun-planet.status-Done {
+      background: radial-gradient(circle at 33% 33%, #b5bcc6, #8b949e 45%, #3a3f48 90%);
+      box-shadow:
+        0 0 5px 1px rgba(139,148,158,0.18),
+        inset -4px -5px 12px rgba(0,0,0,0.65);
+      filter: brightness(0.5) saturate(0.35);
+    }
+
+    /* Sleeping Z's for paused */
+    .fun-zzz {
+      position: absolute;
+      top: -20px;
+      right: -10px;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      color: rgba(255,220,100,0.8);
+      animation: zzz-float 3s ease-in-out infinite;
+      pointer-events: none;
+      user-select: none;
+      letter-spacing: 2px;
+    }
+    @keyframes zzz-float {
+      0%   { opacity: 0;   transform: translate(0px, 0px)   scale(0.6); }
+      30%  { opacity: 0.9; }
+      80%  { opacity: 0.5; transform: translate(6px, -14px) scale(1.1); }
+      100% { opacity: 0;   transform: translate(10px,-22px)  scale(1.3); }
+    }
+
+    /* Planet name label */
+    .fun-planet-label {
+      position: absolute;
+      white-space: nowrap;
+      font-size: 10px;
+      font-family: var(--font-mono);
+      font-weight: 600;
+      pointer-events: none;
+      text-shadow: 0 1px 5px rgba(0,0,0,1), 0 0 10px rgba(0,0,0,0.9);
+      transition: opacity 0.2s;
+    }
+
+    /* Moon (worktree) */
+    .fun-moon-arm {
+      position: absolute;
+      transform-origin: 0 0;
+    }
+    .fun-moon {
+      position: absolute;
+      border-radius: 50%;
+      background: radial-gradient(circle at 32% 32%, #dce6f0, #8a96a4 50%, #404650 90%);
+      box-shadow: inset -2px -2px 5px rgba(0,0,0,0.55), 0 0 4px rgba(170,185,200,0.28);
+    }
+    .fun-moon-label {
+      position: absolute;
+      font-size: 8px;
+      font-family: var(--font-mono);
+      color: rgba(160,180,200,0.75);
+      white-space: nowrap;
+      pointer-events: none;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.9);
+    }
+
+    /* Floating astronaut agents */
+    .fun-agent {
+      position: absolute;
+      font-size: 13px;
+      cursor: default;
+      user-select: none;
+      filter: drop-shadow(0 0 4px rgba(255,255,255,0.35));
+      animation: agent-float 3.5s ease-in-out infinite;
+      z-index: 18;
+    }
+    @keyframes agent-float {
+      0%, 100% { transform: translateY(0px)  rotate(-4deg); }
+      50%       { transform: translateY(-6px) rotate(4deg); }
+    }
+
+    /* Hover popup */
+    .fun-popup {
+      position: absolute;
+      background: rgba(18,22,30,0.97);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--text);
+      pointer-events: none;
+      z-index: 200;
+      max-width: 240px;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.7);
+      backdrop-filter: blur(6px);
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .fun-popup.visible { opacity: 1; }
+    .fun-popup-name {
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .fun-popup-row {
+      color: var(--text-muted);
+      line-height: 1.75;
+    }
+    .fun-popup-row span { color: var(--text); }
+
+    /* Legend */
+    #fun-legend {
+      position: absolute;
+      bottom: 16px;
+      left: 18px;
+      z-index: 30;
+      background: rgba(10,14,22,0.82);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 9px 13px;
+      font-size: 10px;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    #fun-legend-title {
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-subtle);
+      margin-bottom: 2px;
+    }
+    .fun-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .fun-legend-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .fun-legend-dot.ld-active  { background: #3fb950; box-shadow: 0 0 5px rgba(63,185,80,0.8); }
+    .fun-legend-dot.ld-review  { background: #388bfd; box-shadow: 0 0 5px rgba(56,139,253,0.7); }
+    .fun-legend-dot.ld-paused  { background: #c9982a; opacity: 0.5; }
+    .fun-legend-dot.ld-done    { background: #8b949e; opacity: 0.35; }
+    .fun-legend-dot.ld-moon    { background: #8a96a4; width: 7px; height: 7px; }
   </style>
 </head>
 <body>
@@ -401,6 +725,7 @@
   <div class="tabs" id="tabs">
     <button class="tab-btn active" data-tab="board">Board</button>
     <button class="tab-btn" data-tab="graph">Graph</button>
+    <button class="tab-btn" data-tab="fun">✦ World</button>
   </div>
 </header>
 
@@ -447,6 +772,38 @@
   <div id="graph-inner"></div>
 </div>
 
+<!-- FUN TAB: THE SPACE WORLD -->
+<div id="fun">
+  <canvas id="fun-stars"></canvas>
+  <div id="fun-nebula"></div>
+  <!-- Decorative orbit rings (injected by JS) -->
+  <div id="fun-rings"></div>
+  <!-- Central star -->
+  <div id="fun-star">
+    <div id="fun-star-core"></div>
+    <div id="fun-star-label">workspace</div>
+  </div>
+  <!-- Planets, moons, agents (injected by JS) -->
+  <div id="fun-scene"></div>
+  <!-- Hover popup -->
+  <div class="fun-popup" id="fun-popup"></div>
+  <!-- Empty state -->
+  <div id="fun-empty" style="display:none; position:absolute; inset:0; align-items:center; justify-content:center; flex-direction:column; gap:14px; font-size:13px; color:var(--text-muted);">
+    <div style="font-size:40px">🌌</div>
+    <div>No projects in the cosmos yet.</div>
+  </div>
+  <!-- Legend -->
+  <div id="fun-legend">
+    <div id="fun-legend-title">Legend</div>
+    <div class="fun-legend-item"><div class="fun-legend-dot ld-active"></div>Active — orbiting fast</div>
+    <div class="fun-legend-item"><div class="fun-legend-dot ld-review"></div>Needs Review — scanning</div>
+    <div class="fun-legend-item"><div class="fun-legend-dot ld-paused"></div>Paused — sleeping</div>
+    <div class="fun-legend-item"><div class="fun-legend-dot ld-done"></div>Done — drifting dark</div>
+    <div class="fun-legend-item"><div class="fun-legend-dot ld-moon"></div>Moons = Worktrees</div>
+    <div class="fun-legend-item" style="gap:6px"><span style="font-size:12px">👨‍🚀</span> = Agents</div>
+  </div>
+</div>
+
 <script>
 'use strict'
 
@@ -459,9 +816,9 @@ let dragPath = null
 function relTime(iso) {
   if (!iso) return ''
   const s = Math.floor((Date.now() - new Date(iso)) / 1000)
-  if (s < 60)           return 'just now'
-  if (s < 3600)         return Math.floor(s / 60) + 'm ago'
-  if (s < 86400)        return Math.floor(s / 3600) + 'h ago'
+  if (s < 60)       return 'just now'
+  if (s < 3600)     return Math.floor(s / 60) + 'm ago'
+  if (s < 86400)    return Math.floor(s / 3600) + 'h ago'
   return Math.floor(s / 86400) + 'd ago'
 }
 
@@ -471,7 +828,7 @@ function shortPath(p) {
   return parts.length >= 2 ? parts.slice(-2).join('/') : p
 }
 
-// ── Render ─────────────────────────────────────────────────────────────────
+// ── Board render ────────────────────────────────────────────────────────────
 
 function render() {
   const grouped = {}
@@ -504,21 +861,17 @@ function makeCard(proj, col) {
   const canDrag = col !== 'Active'
   card.draggable = canDrag
 
-  // Name
   const name = el('div', 'card-name', proj.name || shortPath(proj.path))
   card.appendChild(name)
 
-  // Badges row 1: branch + sessions
   const row1 = document.createElement('div')
   row1.className = 'card-row'
   if (proj.git_branch) row1.appendChild(badge('⎇ ' + proj.git_branch))
   row1.appendChild(badge((proj.session_count ?? 0) + ' sess'))
   card.appendChild(row1)
 
-  // Time
   card.appendChild(el('div', 'card-time', relTime(proj.last_session)))
 
-  // Badges row 2: agents + worktrees (only if present)
   if (proj.agents || proj.worktrees) {
     const row2 = document.createElement('div')
     row2.className = 'card-row'
@@ -527,27 +880,17 @@ function makeCard(proj, col) {
     card.appendChild(row2)
   }
 
-  // Last commit
-  if (proj.last_commit) {
-    const commit = el('div', 'card-commit', '↑ ' + proj.last_commit)
-    card.appendChild(commit)
-  }
-
-  // Path
   const pathEl = el('div', 'card-path', shortPath(proj.path))
   pathEl.title = proj.path || ''
   card.appendChild(pathEl)
 
-  // Drag
   if (canDrag) {
     card.addEventListener('dragstart', e => {
       dragPath = proj.path
       requestAnimationFrame(() => card.classList.add('dragging'))
       e.dataTransfer.effectAllowed = 'move'
     })
-    card.addEventListener('dragend', () => {
-      card.classList.remove('dragging')
-    })
+    card.addEventListener('dragend', () => card.classList.remove('dragging'))
   }
 
   return card
@@ -567,11 +910,11 @@ function badge(text, extraClass) {
   return b
 }
 
-// ── Drag-and-drop on columns ────────────────────────────────────────────────
+// ── Drag-and-drop ───────────────────────────────────────────────────────────
 
 document.querySelectorAll('.column').forEach(col => {
   const colStatus = col.dataset.col
-  if (colStatus === 'Active') return  // Active is never a drop target
+  if (colStatus === 'Active') return
 
   col.addEventListener('dragover', e => {
     e.preventDefault()
@@ -589,7 +932,6 @@ document.querySelectorAll('.column').forEach(col => {
     const prev = projects.find(p => p.path === dragPath)?.status
     if (prev === colStatus) return
 
-    // Optimistic update
     for (const p of projects) {
       if (p.path === dragPath) { p.status = colStatus; break }
     }
@@ -605,10 +947,10 @@ document.querySelectorAll('.column').forEach(col => {
   })
 })
 
-// ── SSE ────────────────────────────────────────────────────────────────────
+// ── SSE ─────────────────────────────────────────────────────────────────────
 
-const dot    = document.getElementById('dot')
-const label  = document.getElementById('conn-status')
+const dot     = document.getElementById('dot')
+const label   = document.getElementById('conn-status')
 const overlay = document.getElementById('loading')
 
 function connectSSE() {
@@ -624,6 +966,7 @@ function connectSSE() {
     projects = data.projects ?? []
     render()
     if (activeTab === 'graph') renderGraph()
+    if (activeTab === 'fun')   renderFun()
     if (overlay && !overlay.classList.contains('fade')) {
       overlay.classList.add('fade')
       setTimeout(() => overlay.remove(), 350)
@@ -633,16 +976,14 @@ function connectSSE() {
   es.onerror = () => {
     dot.className = 'status-dot reconnecting'
     label.textContent = 'reconnecting…'
-    // EventSource auto-reconnects natively
   }
 }
 
-// Re-render timestamps every 60s without a network round-trip
 setInterval(render, 60000)
-
 connectSSE()
 
-// ── Mermaid setup ─────────────────────────────────────────────────────────
+// ── Mermaid ──────────────────────────────────────────────────────────────────
+
 const mermaidScript = document.createElement('script')
 mermaidScript.src = '/web/mermaid.min.js'
 mermaidScript.onload = () => {
@@ -678,7 +1019,6 @@ async function renderGraph() {
     const { svg } = await mermaid.render(id, dsl)
     const inner = document.getElementById('graph-inner')
     inner.innerHTML = svg
-    // Override Mermaid's hardcoded dimensions so the diagram fills the panel
     const svgEl = inner.querySelector('svg')
     if (svgEl) {
       svgEl.setAttribute('width', '100%')
@@ -700,12 +1040,370 @@ document.getElementById('tabs').addEventListener('click', e => {
   if (tab === activeTab) return
   activeTab = tab
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab))
-  document.getElementById('board').style.display = tab === 'board' ? '' : 'none'
+  document.getElementById('board').style.display = tab === 'board' ? ''     : 'none'
   document.getElementById('graph').style.display = tab === 'graph' ? 'flex' : 'none'
+  document.getElementById('fun').style.display   = tab === 'fun'   ? 'flex' : 'none'
   if (tab === 'graph') renderGraph()
+  if (tab === 'fun')   { initStarfield(); renderFun(); }
 })
 
 document.getElementById('graph-refresh-btn').addEventListener('click', renderGraph)
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+// FUN TAB — SPACE WORLD
+// ══════════════════════════════════════════════════════════════════════════════
+
+let starfieldReady = false
+
+// ── Starfield (seeded, stable between re-renders) ────────────────────────────
+function initStarfield() {
+  if (starfieldReady) return
+  starfieldReady = true
+
+  const canvas = document.getElementById('fun-stars')
+  const ctx    = canvas.getContext('2d')
+  const funEl  = document.getElementById('fun')
+
+  function resize() {
+    canvas.width  = funEl.clientWidth  || window.innerWidth
+    canvas.height = funEl.clientHeight || (window.innerHeight - 60)
+    drawStars()
+  }
+
+  function drawStars() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    const rng = mulberry32(0xdeadbeef)
+    const total = Math.floor((canvas.width * canvas.height) / 2400)
+    for (let i = 0; i < total; i++) {
+      const x = rng() * canvas.width
+      const y = rng() * canvas.height
+      const r = rng() * 1.0 + 0.2
+      const a = rng() * 0.6 + 0.2
+      ctx.beginPath()
+      ctx.arc(x, y, r, 0, Math.PI * 2)
+      ctx.fillStyle = `rgba(210,225,255,${a.toFixed(2)})`
+      ctx.fill()
+    }
+    // A few tinted accent stars
+    const tints = ['200,90%,92%', '30,70%,90%', '270,60%,90%', '150,60%,88%']
+    for (let i = 0; i < 16; i++) {
+      const x = rng() * canvas.width
+      const y = rng() * canvas.height
+      const hsl = tints[i % tints.length]
+      const a = rng() * 0.4 + 0.25
+      ctx.beginPath()
+      ctx.arc(x, y, rng() * 1.4 + 0.7, 0, Math.PI * 2)
+      ctx.fillStyle = `hsla(${hsl},${a.toFixed(2)})`
+      ctx.fill()
+    }
+  }
+
+  window.addEventListener('resize', resize)
+  resize()
+}
+
+// Mulberry32 PRNG — deterministic, no external deps
+function mulberry32(seed) {
+  let s = seed >>> 0
+  return function() {
+    s += 0x6D2B79F5
+    let t = s
+    t = Math.imul(t ^ (t >>> 15), t | 1)
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function parseAgentCount(str) {
+  if (!str) return 0
+  const m = str.match(/^(\d+)\s+agent/)
+  if (m) return parseInt(m[1], 10)
+  return str.split(',').map(s => s.trim()).filter(Boolean).length
+}
+
+function parseWorktrees(str) {
+  if (!str) return []
+  return str.split(',').map(s => s.trim()).filter(Boolean)
+}
+
+function orbitDuration(status) {
+  // CSS animation-duration string for the orbit arm rotation
+  switch (status) {
+    case 'Active':       return '20s'
+    case 'Needs Review': return '36s'
+    case 'Done':         return '100s'
+    default:             return null  // paused — no animation
+  }
+}
+
+function planetRadius(proj) {
+  const sess = proj.session_count ?? 0
+  return Math.min(30, 13 + Math.sqrt(sess) * 2.8)
+}
+
+function statusColor(status) {
+  switch (status) {
+    case 'Active':       return '#3fb950'
+    case 'Paused':       return '#d4a030'
+    case 'Needs Review': return '#388bfd'
+    case 'Done':         return '#8b949e'
+    default:             return '#7d8590'
+  }
+}
+
+const AGENT_EMOJIS = ['👨‍🚀','👩‍🚀','🤖','👾','🛸','🧑‍🚀']
+function agentEmoji(i) { return AGENT_EMOJIS[i % AGENT_EMOJIS.length] }
+
+// ── Main fun renderer ─────────────────────────────────────────────────────────
+// We inject one <style> block per render call containing all keyframes,
+// then clear the scene and build fresh DOM. Old style blocks are cleaned up.
+
+let funStyleEl = null
+
+function renderFun() {
+  const funEl  = document.getElementById('fun')
+  const scene  = document.getElementById('fun-scene')
+  const rings  = document.getElementById('fun-rings')
+  const popup  = document.getElementById('fun-popup')
+  const emptyEl = document.getElementById('fun-empty')
+
+  // Clear previous render
+  scene.innerHTML = ''
+  rings.innerHTML = ''
+  popup.classList.remove('visible')
+  if (funStyleEl) { funStyleEl.remove(); funStyleEl = null }
+
+  if (projects.length === 0) {
+    emptyEl.style.display = 'flex'
+    return
+  }
+  emptyEl.style.display = 'none'
+
+  const W  = funEl.clientWidth  || window.innerWidth
+  const H  = funEl.clientHeight || (window.innerHeight - 60)
+
+  // Style accumulator for all keyframes
+  let css = ''
+
+  // Sort order: Active first so they get inner orbits, Done last / outer
+  const statusPriority = { 'Active': 0, 'Needs Review': 1, 'Paused': 2, 'Done': 3 }
+  const sorted = [...projects].sort((a, b) => {
+    return (statusPriority[a.status] ?? 2) - (statusPriority[b.status] ?? 2)
+  })
+
+  const n = sorted.length
+  const minR = 90
+  const maxR = Math.min(W, H) * 0.44
+
+  sorted.forEach((proj, idx) => {
+    // Orbit radius — evenly spaced, with a gap for the central star
+    const orbitR = n === 1
+      ? (minR + maxR) / 2
+      : minR + ((maxR - minR) / Math.max(n - 1, 1)) * idx
+
+    const pr          = planetRadius(proj)
+    const isPaused    = proj.status === 'Paused'
+    const isDone      = proj.status === 'Done'
+    const statusCls   = 'status-' + (proj.status || 'Paused').replace(/\s+/g, '-')
+    const agentCount  = parseAgentCount(proj.agents)
+    const worktrees   = parseWorktrees(proj.worktrees)
+    const dur         = orbitDuration(proj.status)
+    // Spread starting angles so no two planets start at the same position
+    const startDeg    = (idx / n) * 360
+
+    // -- Decorative orbit ring --
+    const ring = document.createElement('div')
+    ring.className = 'fun-orbit-ring'
+    ring.style.cssText = [
+      `width:${orbitR * 2}px`,
+      `height:${orbitR * 2}px`,
+      `left:calc(50% - ${orbitR}px)`,
+      `top:calc(50% - ${orbitR}px)`,
+    ].join(';')
+    rings.appendChild(ring)
+
+    // -- Orbit arm (rotates, carries planet) --
+    const armId   = `fa${idx}`
+    const armKf   = `kf-arm-${idx}`
+
+    // Keyframes: arm goes startDeg → startDeg+360
+    if (dur) {
+      css += `@keyframes ${armKf}{from{transform:rotate(${startDeg}deg)}to{transform:rotate(${startDeg + 360}deg)}}\n`
+    }
+
+    const arm = document.createElement('div')
+    arm.className = 'fun-orbit-arm'
+    arm.id = armId
+    arm.style.cssText = [
+      'position:absolute',
+      'left:50%',
+      'top:50%',
+      'transform-origin:0 0',
+      dur
+        ? `animation:${armKf} ${dur} linear infinite`
+        : `transform:rotate(${startDeg}deg)`,
+    ].join(';')
+
+    // -- Planet --
+    const planet = document.createElement('div')
+    planet.className = `fun-planet ${statusCls}`
+    planet.style.cssText = [
+      `width:${pr * 2}px`,
+      `height:${pr * 2}px`,
+      `left:${orbitR - pr}px`,
+      `top:${-pr}px`,
+    ].join(';')
+
+    // Sleeping Zzz for paused
+    if (isPaused) {
+      const zzz = document.createElement('span')
+      zzz.className = 'fun-zzz'
+      zzz.textContent = 'z z'
+      planet.appendChild(zzz)
+    }
+
+    // Planet label — counter-rotates so it stays upright
+    const labelKf = `kf-lbl-${idx}`
+    if (dur) {
+      css += `@keyframes ${labelKf}{from{transform:rotate(${-startDeg}deg)}to{transform:rotate(${-(startDeg + 360)}deg)}}\n`
+    }
+
+    const projName = proj.name || shortPath(proj.path) || 'project'
+    const lbl = document.createElement('div')
+    lbl.className = 'fun-planet-label'
+    lbl.textContent = projName
+    lbl.style.cssText = [
+      `left:${pr * 2 + 6}px`,
+      `top:${pr - 8}px`,
+      `color:${statusColor(proj.status)}`,
+      `opacity:${(isPaused || isDone) ? '0.4' : '0.88'}`,
+      dur ? `animation:${labelKf} ${dur} linear infinite` : '',
+    ].filter(Boolean).join(';')
+    planet.appendChild(lbl)
+
+    // -- Moons (worktrees) --
+    const moonOrbitR = pr + 18
+    worktrees.forEach((wt, mi) => {
+      const moonR         = 5
+      const moonKf        = `kf-moon-${idx}-${mi}`
+      const moonLblKf     = `kf-mlbl-${idx}-${mi}`
+      const moonDur       = isPaused ? null : '9s'
+      const moonStart     = (mi / Math.max(worktrees.length, 1)) * 360
+
+      if (moonDur) {
+        css += `@keyframes ${moonKf}{from{transform:rotate(${moonStart}deg)}to{transform:rotate(${moonStart + 360}deg)}}\n`
+        css += `@keyframes ${moonLblKf}{from{transform:rotate(${-moonStart}deg)}to{transform:rotate(${-(moonStart + 360)}deg)}}\n`
+      }
+
+      const moonArm = document.createElement('div')
+      moonArm.className = 'fun-moon-arm'
+      moonArm.style.cssText = [
+        'position:absolute',
+        `left:${pr}px`,
+        `top:${pr}px`,
+        'transform-origin:0 0',
+        'width:0',
+        'height:0',
+        moonDur
+          ? `animation:${moonKf} ${moonDur} linear infinite`
+          : `transform:rotate(${moonStart}deg)`,
+      ].join(';')
+
+      const moon = document.createElement('div')
+      moon.className = 'fun-moon'
+      moon.style.cssText = [
+        `width:${moonR * 2}px`,
+        `height:${moonR * 2}px`,
+        `left:${moonOrbitR - moonR}px`,
+        `top:${-moonR}px`,
+      ].join(';')
+
+      const wtShort = wt.replace(/^.*\//, '').substring(0, 14)
+      const mLbl = document.createElement('div')
+      mLbl.className = 'fun-moon-label'
+      mLbl.textContent = wtShort
+      mLbl.style.cssText = [
+        `left:${moonR * 2 + 4}px`,
+        `top:${moonR - 6}px`,
+        moonDur ? `animation:${moonLblKf} ${moonDur} linear infinite` : '',
+      ].filter(Boolean).join(';')
+
+      moonArm.appendChild(moon)
+      moonArm.appendChild(mLbl)
+      planet.appendChild(moonArm)
+    })
+
+    // -- Agents (astronauts floating near the planet) --
+    const maxAgents = Math.min(agentCount, 4)
+    for (let ai = 0; ai < maxAgents; ai++) {
+      const agent = document.createElement('div')
+      agent.className = 'fun-agent'
+      agent.textContent = agentEmoji(ai)
+      // Spread agents in an arc above/beside the planet
+      const angle = (ai / Math.max(maxAgents, 1)) * Math.PI * 1.3 - 0.5
+      const dist  = pr + 24
+      const ax    = Math.cos(angle) * dist
+      const ay    = Math.sin(angle) * dist
+      agent.style.cssText = [
+        `left:${pr + ax - 9}px`,
+        `top:${pr + ay - 9}px`,
+        `animation-delay:${ai * 0.65}s`,
+        `animation-duration:${3.0 + ai * 0.45}s`,
+        `font-size:${isPaused ? '10px' : '13px'}`,
+        `opacity:${isPaused ? 0.35 : 1}`,
+      ].join(';')
+      agent.title = proj.agents || 'agent'
+      planet.appendChild(agent)
+    }
+
+    // -- Hover popup events --
+    planet.addEventListener('mouseenter', ev => showPopup(proj, ev))
+    planet.addEventListener('mouseleave', ()  => popup.classList.remove('visible'))
+    planet.addEventListener('mousemove',  ev  => movePopup(ev, funEl))
+
+    arm.appendChild(planet)
+    scene.appendChild(arm)
+  })
+
+  // Inject all keyframes at once
+  funStyleEl = document.createElement('style')
+  funStyleEl.textContent = css
+  document.head.appendChild(funStyleEl)
+}
+
+// ── Popup ─────────────────────────────────────────────────────────────────────
+
+function showPopup(proj, ev) {
+  const popup   = document.getElementById('fun-popup')
+  const agents  = parseAgentCount(proj.agents)
+  const moons   = parseWorktrees(proj.worktrees)
+  popup.innerHTML = `
+    <div class="fun-popup-name" style="color:${statusColor(proj.status)}">${proj.name || shortPath(proj.path)}</div>
+    <div class="fun-popup-row">Status&#58; <span>${proj.status || '—'}</span></div>
+    <div class="fun-popup-row">Branch&#58; <span>${proj.git_branch || '—'}</span></div>
+    <div class="fun-popup-row">Sessions&#58; <span>${proj.session_count ?? 0}</span></div>
+    <div class="fun-popup-row">Last active&#58; <span>${relTime(proj.last_session) || '—'}</span></div>
+    ${agents > 0 ? `<div class="fun-popup-row">Agents&#58; <span>${proj.agents}</span></div>` : ''}
+    ${moons.length > 0 ? `<div class="fun-popup-row">Worktrees&#58; <span>${moons.join(', ')}</span></div>` : ''}
+    <div class="fun-popup-row" style="margin-top:5px;font-size:9px;color:var(--text-subtle)">${shortPath(proj.path)}</div>
+  `
+  movePopup(ev, document.getElementById('fun'))
+  popup.classList.add('visible')
+}
+
+function movePopup(ev, funEl) {
+  const popup = document.getElementById('fun-popup')
+  const rect  = funEl.getBoundingClientRect()
+  let px = ev.clientX - rect.left + 18
+  let py = ev.clientY - rect.top  + 18
+  if (px + 250 > rect.width)  px = ev.clientX - rect.left - 255
+  if (py + 200 > rect.height) py = ev.clientY - rect.top  - 205
+  popup.style.left = px + 'px'
+  popup.style.top  = py + 'px'
+}
 </script>
 </body>
 </html>
