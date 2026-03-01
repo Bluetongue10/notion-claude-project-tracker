@@ -1,2 +1,8 @@
 .env
 web/mermaid.min.js
+node_modules/
+*.log
+.DS_Store
+.claude/
+.notion-db-id
+.playwright-mcp/

@@ -56,4 +56,25 @@ const mockProjects = [
   console.log('✓ classDef declarations present')
 }
 
+// Test 6: agent_details renders status-aware classes (subagent fallback path)
+{
+  const projects = [{
+    ...mockProjects[0],
+    _teamName: null,
+    agent_details: [
+      { name: 'researcher', type: 'general-purpose', model: 'claude-sonnet-4-6', status: 'active' },
+      { name: 'tester',     type: 'general-purpose', model: 'claude-haiku-4-5-20251001', status: 'idle' },
+      { name: 'old-agent',  type: 'general-purpose', model: '',                           status: 'done'  },
+    ]
+  }]
+  const dsl = buildGraph(projects, { skipGit: true, skipTeams: true })
+  assert(dsl.includes(':::agent-active'), 'missing :::agent-active class')
+  assert(dsl.includes(':::agent-idle'),   'missing :::agent-idle class')
+  assert(dsl.includes(':::agent-done'),   'missing :::agent-done class')
+  assert(dsl.includes('subagents'),       'missing subagents subgraph label')
+  assert(dsl.includes('sonnet-4-6'),      'missing shortened model name')
+  assert(dsl.includes('haiku-4-5'),       'missing shortened haiku model name')
+  console.log('✓ agent status classes and model labels rendered')
+}
+
 console.log('\nAll graph.js tests passed')
