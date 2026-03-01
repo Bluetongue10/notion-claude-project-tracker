@@ -113,8 +113,9 @@ get_projects() {
       --arg worktrees "$worktrees" \
       --arg agents "$agents" \
       --arg status "$proj_status" \
+      --arg project_dir "$project_dir" \
       '{name:$name, path:$path, git_branch:$git_branch, last_session:$last_session,
         session_count:$session_count, session_id:$session_id, slug:$slug,
-        worktrees:$worktrees, agents:$agents, status:$status}'
+        worktrees:$worktrees, agents:$agents, status:$status, project_dir:$project_dir}'
   done
 }
