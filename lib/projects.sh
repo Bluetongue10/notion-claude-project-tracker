@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 # lib/projects.sh — discover and parse Claude Code projects
 
+is_active() {
+  local last_session="$1"
+  local two_hours_ago
+  two_hours_ago=$(date -u -v-2H +"%Y-%m-%dT%H:%M:%S.000Z" 2>/dev/null \
+    || date -u -d "2 hours ago" +"%Y-%m-%dT%H:%M:%S.000Z")
+  [[ "$last_session" > "$two_hours_ago" ]]
+}
+
 get_worktrees() {
   local project_path="$1"
   [[ -d "$project_path" ]] || { echo ""; return 0; }
@@ -89,9 +97,10 @@ get_projects() {
     project_name=$(basename "$project_path")
     [[ -z "$project_name" ]] && project_name=$(basename "$project_dir")
 
-    local worktrees agents
+    local worktrees agents proj_status
     worktrees=$(get_worktrees "$project_path")
     agents=$(get_agents "$project_dir" "$session_id")
+    is_active "$last_session_iso" && proj_status="Active" || proj_status="Paused"
 
     jq -cn \
       --arg name "$project_name" \
@@ -103,8 +112,9 @@ get_projects() {
       --arg slug "$slug" \
       --arg worktrees "$worktrees" \
       --arg agents "$agents" \
+      --arg status "$proj_status" \
       '{name:$name, path:$path, git_branch:$git_branch, last_session:$last_session,
         session_count:$session_count, session_id:$session_id, slug:$slug,
-        worktrees:$worktrees, agents:$agents}'
+        worktrees:$worktrees, agents:$agents, status:$status}'
   done
 }

@@ -1,53 +1,33 @@
 #!/usr/bin/env bash
-# setup.sh — one-time setup: create Notion DB, install global Claude Code hooks
+# setup.sh — configure and launch the local Kanban server
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$ROOT_DIR/lib/config.sh"
-source "$ROOT_DIR/lib/notion.sh"
-
-echo "=== Notion Claude Project Tracker Setup ==="
-
-# 1. Load config
-if [[ ! -f "$ROOT_DIR/.env" ]]; then
-  echo "Copy .env.example to .env and fill in NOTION_TOKEN and NOTION_PARENT_PAGE_ID."
-  exit 1
-fi
 load_config
 
-# 2. Create Notion database
-echo "Creating Notion database under page $NOTION_PARENT_PAGE_ID..."
-DB_ID=$(create_database)
-if [[ -z "$DB_ID" ]]; then
-  echo "ERROR: Failed to create Notion database. Check your NOTION_TOKEN and NOTION_PARENT_PAGE_ID." >&2
+echo "=== Claude Projects Kanban Setup ==="
+
+# 1. Validate CLAUDE_PROJECTS_DIR
+if [[ ! -d "$CLAUDE_PROJECTS_DIR" ]]; then
+  echo "ERROR: Claude projects directory not found: $CLAUDE_PROJECTS_DIR" >&2
+  echo "Set CLAUDE_PROJECTS_DIR in .env or ensure ~/.claude/projects exists." >&2
   exit 1
 fi
-echo "$DB_ID" > "$NOTION_DB_ID_FILE"
-echo "  ✓ Database created: $DB_ID"
+echo "  ✓ Projects dir: $CLAUDE_PROJECTS_DIR"
 
-# 3. Install Claude Code global hooks
+# 2. Remove any previously-installed Notion hooks from ~/.claude/settings.json
 CLAUDE_SETTINGS="$HOME/.claude/settings.json"
-HOOK_START="$ROOT_DIR/hooks/session-start.sh"
-HOOK_STOP="$ROOT_DIR/hooks/session-stop.sh"
-
-echo "Installing Claude Code hooks..."
-# Use jq to merge hooks into existing settings.json
 if [[ -f "$CLAUDE_SETTINGS" ]]; then
-  tmp=$(mktemp)
-  jq --arg start "bash '$HOOK_START'" \
-     --arg stop  "bash '$HOOK_STOP'" \
-    '.hooks.SessionStart += [{"hooks":[{"type":"command","command":$start}]}] |
-     .hooks.Stop        += [{"hooks":[{"type":"command","command":$stop}]}]' \
-    "$CLAUDE_SETTINGS" > "$tmp" && mv "$tmp" "$CLAUDE_SETTINGS"
-  echo "  ✓ Hooks installed in $CLAUDE_SETTINGS"
-else
-  echo "  WARN: ~/.claude/settings.json not found. Install Claude Code first." >&2
+  if jq -e '.hooks.SessionStart // .hooks.Stop' "$CLAUDE_SETTINGS" > /dev/null 2>&1; then
+    tmp=$(mktemp)
+    jq 'del(.hooks.SessionStart) | del(.hooks.Stop)' "$CLAUDE_SETTINGS" > "$tmp" \
+      && mv "$tmp" "$CLAUDE_SETTINGS"
+    echo "  ✓ Removed old Notion hooks from $CLAUDE_SETTINGS"
+  fi
 fi
 
-# 4. Run initial sync
-echo "Running initial sync..."
-"$ROOT_DIR/bin/sync-notion"
-
+# 3. Start the Kanban server
 echo ""
-echo "Setup complete! Open your Notion page to see the Claude Projects Kanban."
-echo "Run './bin/sync-notion' anytime to refresh all projects."
+echo "Starting Kanban server on port $KANBAN_PORT…"
+exec "$ROOT_DIR/bin/serve"

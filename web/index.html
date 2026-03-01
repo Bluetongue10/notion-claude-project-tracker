@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude Projects</title>
+  <style>
+    :root {
+      --bg:          #0d1117;
+      --surface:     #161b22;
+      --surface2:    #21262d;
+      --border:      #30363d;
+      --border2:     #3d444d;
+      --text:        #e6edf3;
+      --text-muted:  #7d8590;
+      --text-subtle: #484f58;
+
+      --active:      #3fb950;
+      --paused:      #e3b341;
+      --review:      #388bfd;
+      --done:        #8b949e;
+
+      --radius: 8px;
+      --font-mono: 'SF Mono', 'Cascadia Code', Menlo, Monaco, 'Courier New', monospace;
+      --font-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-ui);
+      font-size: 14px;
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ── */
+    header {
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      position: sticky;
+      top: 0;
+      background: rgba(13,17,23,0.92);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+    }
+
+    .header-logo {
+      width: 26px;
+      height: 26px;
+      background: linear-gradient(135deg, #3fb950 0%, #388bfd 100%);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      flex-shrink: 0;
+      color: #fff;
+    }
+
+    header h1 {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .header-right {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--text-subtle);
+      animation: pulse 2.5s ease-in-out infinite;
+    }
+    .status-dot.live { background: var(--active); }
+    .status-dot.reconnecting { background: var(--paused); animation: none; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.35; }
+    }
+
+    /* ── Board ── */
+    .board {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      padding: 20px 24px 32px;
+      flex: 1;
+      align-items: start;
+    }
+
+    @media (max-width: 900px) { .board { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 540px) { .board { grid-template-columns: 1fr; } }
+
+    /* ── Column ── */
+    .column {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-top-width: 2px;
+      border-radius: var(--radius);
+      display: flex;
+      flex-direction: column;
+      min-height: 180px;
+      transition: background 0.12s, box-shadow 0.12s;
+    }
+
+    .col-active  { border-top-color: var(--active); }
+    .col-paused  { border-top-color: var(--paused); }
+    .col-review  { border-top-color: var(--review); }
+    .col-done    { border-top-color: var(--done); }
+
+    .column.drop-over {
+      background: rgba(255,255,255,0.03);
+      box-shadow: 0 0 0 1px var(--border2);
+    }
+
+    .col-header {
+      padding: 11px 14px 10px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .col-pip {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .col-active .col-pip { background: var(--active); box-shadow: 0 0 5px rgba(63,185,80,0.6); }
+    .col-paused .col-pip { background: var(--paused); }
+    .col-review .col-pip { background: var(--review); }
+    .col-done   .col-pip { background: var(--done); }
+
+    .col-title {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+    }
+    .col-active .col-title { color: var(--active); }
+    .col-paused .col-title { color: var(--paused); }
+    .col-review .col-title { color: var(--review); }
+    .col-done   .col-title { color: var(--done); }
+
+    .col-count {
+      margin-left: auto;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1px 7px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+    }
+
+    .cards {
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      flex: 1;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 11px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.1s, box-shadow 0.1s, transform 0.1s, opacity 0.1s;
+    }
+
+    /* left accent bar */
+    .card::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+    }
+    .col-active .card::before { background: var(--active); }
+    .col-paused .card::before { background: var(--paused); }
+    .col-review .card::before { background: var(--review); }
+    .col-done   .card::before { background: var(--done); }
+
+    .card[draggable="true"] { cursor: grab; }
+    .card[draggable="true"]:hover {
+      border-color: var(--border2);
+      box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+      transform: translateY(-1px);
+    }
+    .card.dragging { opacity: 0.45; transform: scale(0.97); cursor: grabbing; }
+
+    .card-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding-left: 5px;
+      margin-bottom: 6px;
+    }
+
+    .card-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      padding-left: 5px;
+      margin-bottom: 6px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-family: var(--font-mono);
+      font-weight: 500;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-muted);
+      max-width: 130px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .badge-agents   { color: #a5d6ff; border-color: rgba(165,214,255,0.18); background: rgba(165,214,255,0.06); }
+    .badge-wt       { color: #d2a8ff; border-color: rgba(210,168,255,0.18); background: rgba(210,168,255,0.06); }
+
+    .card-time {
+      font-size: 10px;
+      color: var(--text-subtle);
+      font-family: var(--font-mono);
+      padding-left: 5px;
+      margin-bottom: 5px;
+    }
+
+    .card-path {
+      font-size: 10px;
+      color: var(--text-subtle);
+      font-family: var(--font-mono);
+      padding-left: 5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ── Empty ── */
+    .empty {
+      margin: 4px;
+      padding: 20px;
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-subtle);
+      border: 1px dashed var(--border);
+      border-radius: 6px;
+    }
+
+    /* ── Loading overlay ── */
+    #loading {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      z-index: 200;
+      transition: opacity 0.3s;
+    }
+    #loading.fade { opacity: 0; pointer-events: none; }
+
+    .spinner {
+      width: 26px;
+      height: 26px;
+      border: 2px solid var(--border);
+      border-top-color: var(--active);
+      border-radius: 50%;
+      animation: spin 0.65s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    #loading p { font-size: 12px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="spinner"></div>
+  <p>Loading projects…</p>
+</div>
+
+<header>
+  <div class="header-logo">◆</div>
+  <h1>Claude Projects</h1>
+  <div class="header-right">
+    <span class="status-dot" id="dot"></span>
+    <span id="conn-status">connecting…</span>
+  </div>
+</header>
+
+<div class="board" id="board">
+  <div class="column col-active" data-col="Active">
+    <div class="col-header">
+      <span class="col-pip"></span>
+      <span class="col-title">Active</span>
+      <span class="col-count" id="n-Active">0</span>
+    </div>
+    <div class="cards" id="c-Active"></div>
+  </div>
+  <div class="column col-paused" data-col="Paused">
+    <div class="col-header">
+      <span class="col-pip"></span>
+      <span class="col-title">Paused</span>
+      <span class="col-count" id="n-Paused">0</span>
+    </div>
+    <div class="cards" id="c-Paused"></div>
+  </div>
+  <div class="column col-review" data-col="Needs Review">
+    <div class="col-header">
+      <span class="col-pip"></span>
+      <span class="col-title">Needs Review</span>
+      <span class="col-count" id="n-Needs Review">0</span>
+    </div>
+    <div class="cards" id="c-Needs Review"></div>
+  </div>
+  <div class="column col-done" data-col="Done">
+    <div class="col-header">
+      <span class="col-pip"></span>
+      <span class="col-title">Done</span>
+      <span class="col-count" id="n-Done">0</span>
+    </div>
+    <div class="cards" id="c-Done"></div>
+  </div>
+</div>
+
+<script>
+'use strict'
+
+const COLS = ['Active', 'Paused', 'Needs Review', 'Done']
+let projects = []
+let dragPath = null
+
+// ── Utilities ──────────────────────────────────────────────────────────────
+
+function relTime(iso) {
+  if (!iso) return ''
+  const s = Math.floor((Date.now() - new Date(iso)) / 1000)
+  if (s < 60)           return 'just now'
+  if (s < 3600)         return Math.floor(s / 60) + 'm ago'
+  if (s < 86400)        return Math.floor(s / 3600) + 'h ago'
+  return Math.floor(s / 86400) + 'd ago'
+}
+
+function shortPath(p) {
+  if (!p) return ''
+  const parts = p.replace(/\/$/, '').split('/')
+  return parts.length >= 2 ? parts.slice(-2).join('/') : p
+}
+
+// ── Render ─────────────────────────────────────────────────────────────────
+
+function render() {
+  const grouped = {}
+  for (const col of COLS) grouped[col] = []
+  for (const p of projects) {
+    const key = COLS.includes(p.status) ? p.status : 'Paused'
+    grouped[key].push(p)
+  }
+
+  for (const col of COLS) {
+    document.getElementById('n-' + col).textContent = grouped[col].length
+    const container = document.getElementById('c-' + col)
+    container.innerHTML = ''
+    if (grouped[col].length === 0) {
+      const e = document.createElement('div')
+      e.className = 'empty'
+      e.textContent = 'No projects'
+      container.appendChild(e)
+    } else {
+      for (const proj of grouped[col]) container.appendChild(makeCard(proj, col))
+    }
+  }
+}
+
+function makeCard(proj, col) {
+  const card = document.createElement('div')
+  card.className = 'card'
+  card.dataset.path = proj.path
+
+  const canDrag = col !== 'Active'
+  card.draggable = canDrag
+
+  // Name
+  const name = el('div', 'card-name', proj.name || shortPath(proj.path))
+  card.appendChild(name)
+
+  // Badges row 1: branch + sessions
+  const row1 = document.createElement('div')
+  row1.className = 'card-row'
+  if (proj.git_branch) row1.appendChild(badge('⎇ ' + proj.git_branch))
+  row1.appendChild(badge((proj.session_count ?? 0) + ' sess'))
+  card.appendChild(row1)
+
+  // Time
+  card.appendChild(el('div', 'card-time', relTime(proj.last_session)))
+
+  // Badges row 2: agents + worktrees (only if present)
+  if (proj.agents || proj.worktrees) {
+    const row2 = document.createElement('div')
+    row2.className = 'card-row'
+    if (proj.agents)    row2.appendChild(badge('◈ ' + proj.agents, 'badge-agents'))
+    if (proj.worktrees) row2.appendChild(badge('⎇ ' + proj.worktrees, 'badge-wt'))
+    card.appendChild(row2)
+  }
+
+  // Path
+  const pathEl = el('div', 'card-path', shortPath(proj.path))
+  pathEl.title = proj.path || ''
+  card.appendChild(pathEl)
+
+  // Drag
+  if (canDrag) {
+    card.addEventListener('dragstart', e => {
+      dragPath = proj.path
+      requestAnimationFrame(() => card.classList.add('dragging'))
+      e.dataTransfer.effectAllowed = 'move'
+    })
+    card.addEventListener('dragend', () => {
+      card.classList.remove('dragging')
+    })
+  }
+
+  return card
+}
+
+function el(tag, cls, text) {
+  const node = document.createElement(tag)
+  node.className = cls
+  if (text !== undefined) node.textContent = text
+  return node
+}
+
+function badge(text, extraClass) {
+  const b = document.createElement('span')
+  b.className = 'badge' + (extraClass ? ' ' + extraClass : '')
+  b.textContent = text
+  return b
+}
+
+// ── Drag-and-drop on columns ────────────────────────────────────────────────
+
+document.querySelectorAll('.column').forEach(col => {
+  const colStatus = col.dataset.col
+  if (colStatus === 'Active') return  // Active is never a drop target
+
+  col.addEventListener('dragover', e => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    col.classList.add('drop-over')
+  })
+  col.addEventListener('dragleave', e => {
+    if (!col.contains(e.relatedTarget)) col.classList.remove('drop-over')
+  })
+  col.addEventListener('drop', e => {
+    e.preventDefault()
+    col.classList.remove('drop-over')
+    if (!dragPath) return
+
+    const prev = projects.find(p => p.path === dragPath)?.status
+    if (prev === colStatus) return
+
+    // Optimistic update
+    for (const p of projects) {
+      if (p.path === dragPath) { p.status = colStatus; break }
+    }
+    render()
+
+    fetch('/api/status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: dragPath, status: colStatus }),
+    }).catch(err => console.error('[kanban] status update failed:', err))
+
+    dragPath = null
+  })
+})
+
+// ── SSE ────────────────────────────────────────────────────────────────────
+
+const dot    = document.getElementById('dot')
+const label  = document.getElementById('conn-status')
+const overlay = document.getElementById('loading')
+
+function connectSSE() {
+  const es = new EventSource('/events')
+
+  es.onopen = () => {
+    dot.className = 'status-dot live'
+    label.textContent = 'live'
+  }
+
+  es.onmessage = e => {
+    const data = JSON.parse(e.data)
+    projects = data.projects ?? []
+    render()
+    if (overlay && !overlay.classList.contains('fade')) {
+      overlay.classList.add('fade')
+      setTimeout(() => overlay.remove(), 350)
+    }
+  }
+
+  es.onerror = () => {
+    dot.className = 'status-dot reconnecting'
+    label.textContent = 'reconnecting…'
+    // EventSource auto-reconnects natively
+  }
+}
+
+// Re-render timestamps every 60s without a network round-trip
+setInterval(render, 60000)
+
+connectSSE()
+</script>
+</body>
+</html>
