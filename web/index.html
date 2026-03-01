@@ -707,6 +707,141 @@
     .fun-legend-dot.ld-paused  { background: #c9982a; opacity: 0.5; }
     .fun-legend-dot.ld-done    { background: #8b949e; opacity: 0.35; }
     .fun-legend-dot.ld-moon    { background: #8a96a4; width: 7px; height: 7px; }
+
+    /* ── Focused mode ── */
+    #fun.fun--focused #fun-scene { transition: opacity 0.2s; }
+
+    .fun-back-btn {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      z-index: 50;
+      background: rgba(10,14,22,0.88);
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-family: var(--font-mono);
+      padding: 6px 12px;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .fun-back-btn:hover { color: var(--text); border-color: var(--text-muted); }
+
+    .fun-planet--focused {
+      box-shadow:
+        0 0 0 3px rgba(255,255,255,0.12),
+        0 0 32px 10px rgba(255,255,255,0.18),
+        0 0 80px 30px rgba(255,255,255,0.08) !important;
+      cursor: default;
+    }
+
+    .fun-ghost-planet {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      opacity: 0.2;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .fun-panel {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%) translateX(0);
+      z-index: 40;
+      background: rgba(10,14,22,0.92);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border2);
+      border-radius: 10px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: transform 0.35s ease-out, opacity 0.35s ease-out;
+    }
+    .fun-panel-left {
+      left: 24px;
+      width: 280px;
+    }
+    .fun-panel-right {
+      right: 24px;
+      width: 260px;
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+    .fun-panel.panel-hidden-left  { transform: translateY(-50%) translateX(-100%); opacity: 0; }
+    .fun-panel.panel-hidden-right { transform: translateY(-50%) translateX(100%);  opacity: 0; }
+
+    .fun-panel-name {
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .fun-panel-row {
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .fun-panel-row .fun-panel-val {
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .fun-panel-row .fun-panel-val.multiline {
+      white-space: normal;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      color: var(--text-muted);
+    }
+    .fun-panel-pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      align-self: flex-start;
+    }
+    .fun-panel-section {
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-subtle);
+      margin-top: 4px;
+      margin-bottom: 2px;
+    }
+
+    .fun-satellite-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 7px 10px;
+      font-size: 11px;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: background 0.12s, border-color 0.12s;
+      margin-bottom: 4px;
+    }
+    .fun-satellite-card:hover { background: rgba(255,255,255,0.05); border-color: var(--border2); }
+    .fun-satellite-card.expanded .fun-satellite-detail {
+      display: block;
+    }
+    .fun-satellite-detail {
+      display: none;
+      margin-top: 5px;
+      font-size: 10px;
+      color: var(--text-subtle);
+      font-family: var(--font-mono);
+      word-break: break-all;
+    }
   </style>
 </head>
 <body>
@@ -726,7 +861,7 @@
   <div class="tabs" id="tabs">
     <button class="tab-btn active" data-tab="board">Board</button>
     <button class="tab-btn" data-tab="graph">Graph</button>
-    <button class="tab-btn" data-tab="fun">✦ World</button>
+    <button class="tab-btn" data-tab="fun">✦ Cosmos</button>
   </div>
 </header>
 
@@ -795,7 +930,7 @@
   </div>
   <!-- Legend -->
   <div id="fun-legend">
-    <div id="fun-legend-title">Legend</div>
+    <div id="fun-legend-title">Cosmos Legend</div>
     <div class="fun-legend-item"><div class="fun-legend-dot ld-active"></div>Active — orbiting fast</div>
     <div class="fun-legend-item"><div class="fun-legend-dot ld-review"></div>Needs Review — scanning</div>
     <div class="fun-legend-item"><div class="fun-legend-dot ld-paused"></div>Paused — sleeping</div>
@@ -811,6 +946,7 @@
 const COLS = ['Active', 'Paused', 'Needs Review', 'Done']
 let projects = []
 let dragPath = null
+let selectedProject = null
 
 // ── Utilities ──────────────────────────────────────────────────────────────
 
@@ -988,6 +1124,13 @@ function connectSSE() {
 setInterval(render, 60000)
 connectSSE()
 
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && selectedProject) {
+    selectedProject = null
+    renderFun()
+  }
+})
+
 // ── Mermaid ──────────────────────────────────────────────────────────────────
 
 const mermaidScript = document.createElement('script')
@@ -1123,6 +1266,13 @@ function mulberry32(seed) {
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
+function parseSatellites(agents) {
+  if (!agents) return []
+  const m = agents.match(/^(\d+)\s+agent/)
+  if (m) return Array.from({length: +m[1]}, (_, i) => `Agent ${i + 1}`)
+  return agents.split(',').map(s => s.trim()).filter(Boolean)
+}
+
 function parseAgentCount(str) {
   if (!str) return 0
   const m = str.match(/^(\d+)\s+agent/)
@@ -1170,6 +1320,8 @@ function agentEmoji(i) { return AGENT_EMOJIS[i % AGENT_EMOJIS.length] }
 let funStyleEl = null
 
 function renderFun() {
+  if (selectedProject) { renderFocused(selectedProject); return }
+
   const funEl  = document.getElementById('fun')
   const scene  = document.getElementById('fun-scene')
   const rings  = document.getElementById('fun-rings')
@@ -1180,6 +1332,8 @@ function renderFun() {
   scene.innerHTML = ''
   rings.innerHTML = ''
   popup.classList.remove('visible')
+  funEl.classList.remove('fun--focused')
+  document.querySelectorAll('.fun-panel, .fun-back-btn').forEach(el => el.remove())
   if (funStyleEl) { funStyleEl.remove(); funStyleEl = null }
 
   if (projects.length === 0) {
@@ -1365,6 +1519,10 @@ function renderFun() {
       planet.appendChild(agent)
     }
 
+    // -- Click to focus --
+    planet.style.cursor = 'pointer'
+    planet.addEventListener('click', () => { selectedProject = proj; renderFun() })
+
     // -- Hover popup events --
     planet.addEventListener('mouseenter', ev => showPopup(proj, ev))
     planet.addEventListener('mouseleave', ()  => popup.classList.remove('visible'))
@@ -1378,6 +1536,174 @@ function renderFun() {
   funStyleEl = document.createElement('style')
   funStyleEl.textContent = css
   document.head.appendChild(funStyleEl)
+}
+
+// ── Focused planet view ───────────────────────────────────────────────────────
+
+function renderFocused(proj) {
+  const funEl  = document.getElementById('fun')
+  const scene  = document.getElementById('fun-scene')
+  const rings  = document.getElementById('fun-rings')
+  const popup  = document.getElementById('fun-popup')
+
+  // Clear previous render
+  scene.innerHTML = ''
+  rings.innerHTML = ''
+  popup.classList.remove('visible')
+  document.querySelectorAll('.fun-panel, .fun-back-btn').forEach(el => el.remove())
+  if (funStyleEl) { funStyleEl.remove(); funStyleEl = null }
+  funEl.classList.add('fun--focused')
+
+  const W = funEl.clientWidth  || window.innerWidth
+  const H = funEl.clientHeight || (window.innerHeight - 60)
+
+  const n = projects.length
+  const minR = 90
+  const maxR = Math.min(W, H) * 0.44
+  const statusPriority = { 'Active': 0, 'Needs Review': 1, 'Paused': 2, 'Done': 3 }
+  const sorted = [...projects].sort((a, b) =>
+    (statusPriority[a.status] ?? 2) - (statusPriority[b.status] ?? 2)
+  )
+
+  // Ghost orbit rings + ghost dots for other projects
+  sorted.forEach((p, idx) => {
+    if (p.path === proj.path) return
+    const orbitR = n <= 1
+      ? (minR + maxR) / 2
+      : minR + ((maxR - minR) / Math.max(n - 1, 1)) * idx
+
+    const ring = document.createElement('div')
+    ring.className = 'fun-orbit-ring'
+    ring.style.cssText = [
+      `width:${orbitR * 2}px`,
+      `height:${orbitR * 2}px`,
+      `left:calc(50% - ${orbitR}px)`,
+      `top:calc(50% - ${orbitR}px)`,
+      'opacity:0.12',
+    ].join(';')
+    rings.appendChild(ring)
+
+    // Ghost dot positioned on ring
+    const startDeg = (idx / n) * 360
+    const rad = startDeg * Math.PI / 180
+    const cx = W / 2 + Math.cos(rad) * orbitR
+    const cy = H / 2 + Math.sin(rad) * orbitR
+    const dot = document.createElement('div')
+    dot.className = 'fun-ghost-planet'
+    dot.style.cssText = [
+      `left:${cx}px`,
+      `top:${cy}px`,
+      `background:${statusColor(p.status)}`,
+    ].join(';')
+    scene.appendChild(dot)
+  })
+
+  // Centered focused planet
+  const pr = 52
+  const planet = document.createElement('div')
+  const statusCls = 'status-' + (proj.status || 'Paused').replace(/\s+/g, '-')
+  planet.className = `fun-planet ${statusCls} fun-planet--focused`
+  planet.style.cssText = [
+    `width:${pr * 2}px`,
+    `height:${pr * 2}px`,
+    `position:absolute`,
+    `left:calc(50% - ${pr}px)`,
+    `top:calc(50% - ${pr}px)`,
+  ].join(';')
+  scene.appendChild(planet)
+
+  // Back button
+  const backBtn = document.createElement('button')
+  backBtn.className = 'fun-back-btn'
+  backBtn.textContent = '← Cosmos'
+  backBtn.addEventListener('click', () => { selectedProject = null; renderFun() })
+  funEl.appendChild(backBtn)
+
+  // ── Left panel: project details ──
+  const col = statusColor(proj.status)
+  const pillColors = {
+    'Active':       'background:rgba(63,185,80,0.15);color:#3fb950',
+    'Paused':       'background:rgba(212,160,48,0.15);color:#d4a030',
+    'Needs Review': 'background:rgba(56,139,253,0.15);color:#388bfd',
+    'Done':         'background:rgba(139,148,158,0.15);color:#8b949e',
+  }
+  const pillStyle = pillColors[proj.status] || 'background:rgba(125,133,144,0.15);color:#7d8590'
+  const fullPath  = proj.path || ''
+  const shortP    = shortPath(fullPath)
+
+  const leftPanel = document.createElement('div')
+  leftPanel.className = 'fun-panel fun-panel-left panel-hidden-left'
+  leftPanel.innerHTML = `
+    <div class="fun-panel-name" style="color:${col}">${proj.name || shortP || 'project'}</div>
+    <span class="fun-panel-pill" style="${pillStyle}">${proj.status || '—'}</span>
+    <div class="fun-panel-row">
+      <span>Branch</span>
+      <span class="fun-panel-val">⎇ ${proj.git_branch || '—'}</span>
+    </div>
+    ${proj.last_commit ? `<div class="fun-panel-row">
+      <span>Last commit</span>
+      <span class="fun-panel-val multiline">↑ ${proj.last_commit}</span>
+    </div>` : ''}
+    <div class="fun-panel-row">
+      <span>Sessions</span>
+      <span class="fun-panel-val">${proj.session_count ?? 0} sessions</span>
+    </div>
+    <div class="fun-panel-row">
+      <span>Last active</span>
+      <span class="fun-panel-val">${relTime(proj.last_session) || '—'}</span>
+    </div>
+    <div class="fun-panel-row">
+      <span>Path</span>
+      <span class="fun-panel-val" title="${fullPath}">${shortP || fullPath}</span>
+    </div>
+  `
+  funEl.appendChild(leftPanel)
+
+  // ── Right panel: satellites ──
+  const worktrees = parseWorktrees(proj.worktrees)
+  const agents    = parseSatellites(proj.agents)
+
+  const rightPanel = document.createElement('div')
+  rightPanel.className = 'fun-panel fun-panel-right panel-hidden-right'
+
+  if (worktrees.length === 0 && agents.length === 0) {
+    rightPanel.innerHTML = '<div style="font-size:11px;color:var(--text-subtle)">No satellites</div>'
+  } else {
+    let html = ''
+    if (worktrees.length > 0) {
+      html += '<div class="fun-panel-section">Worktrees</div>'
+      worktrees.forEach(wt => {
+        const branch = wt.replace(/^.*\//, '')
+        html += `<div class="fun-satellite-card" data-detail="${wt.replace(/"/g,'&quot;')}">
+          📡 ${branch}
+          <div class="fun-satellite-detail">${wt}</div>
+        </div>`
+      })
+    }
+    if (agents.length > 0) {
+      html += '<div class="fun-panel-section" style="margin-top:8px">Agents</div>'
+      agents.forEach((name, i) => {
+        const emoji = agentEmoji(i)
+        html += `<div class="fun-satellite-card" data-detail="${(proj.agents || name).replace(/"/g,'&quot;')}">
+          ${emoji} ${name}
+          <div class="fun-satellite-detail">${proj.agents || name}</div>
+        </div>`
+      })
+    }
+    rightPanel.innerHTML = html
+  }
+
+  // Toggle expand on satellite card click
+  rightPanel.querySelectorAll('.fun-satellite-card').forEach(card => {
+    card.addEventListener('click', () => card.classList.toggle('expanded'))
+  })
+  funEl.appendChild(rightPanel)
+
+  // Animate panels in after short delay
+  setTimeout(() => {
+    leftPanel.classList.remove('panel-hidden-left')
+    rightPanel.classList.remove('panel-hidden-right')
+  }, 50)
 }
 
 // ── Popup ─────────────────────────────────────────────────────────────────────
