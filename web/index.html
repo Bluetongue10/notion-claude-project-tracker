@@ -329,9 +329,13 @@
       overflow: auto;
       display: none;
     }
+    #graph-inner {
+      width: 100%;
+    }
     #graph-inner svg {
-      max-width: 100%;
+      width: 100% !important;
       height: auto;
+      display: block;
     }
     .graph-toolbar {
       display: flex;
@@ -655,7 +659,15 @@ async function renderGraph() {
     const dsl = await fetch('/api/graph').then(r => r.text())
     const id = 'kg-' + Date.now()
     const { svg } = await mermaid.render(id, dsl)
-    document.getElementById('graph-inner').innerHTML = svg
+    const inner = document.getElementById('graph-inner')
+    inner.innerHTML = svg
+    // Override Mermaid's hardcoded dimensions so the diagram fills the panel
+    const svgEl = inner.querySelector('svg')
+    if (svgEl) {
+      svgEl.setAttribute('width', '100%')
+      svgEl.removeAttribute('height')
+      svgEl.style.minHeight = '500px'
+    }
   } catch (err) {
     document.getElementById('graph-inner').textContent = 'Render error: ' + err.message
   } finally {
