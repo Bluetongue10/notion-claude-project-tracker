@@ -295,6 +295,67 @@
     }
     #loading.fade { opacity: 0; pointer-events: none; }
 
+    /* ── Tab switcher ── */
+    .tabs {
+      display: flex;
+      gap: 2px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 3px;
+      margin-left: 16px;
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-family: var(--font-ui);
+      padding: 4px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.1s, color 0.1s;
+    }
+    .tab-btn.active {
+      background: var(--surface);
+      color: var(--text);
+    }
+    .tab-btn:hover:not(.active) { color: var(--text); }
+
+    /* ── Graph panel ── */
+    #graph {
+      padding: 24px;
+      flex: 1;
+      overflow: auto;
+      display: none;
+    }
+    #graph-inner svg {
+      max-width: 100%;
+      height: auto;
+    }
+    .graph-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .graph-refresh-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 11px;
+      font-family: var(--font-mono);
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .graph-refresh-btn:hover { color: var(--text); border-color: var(--border2); }
+    .graph-loading {
+      color: var(--text-subtle);
+      font-size: 12px;
+      font-family: var(--font-mono);
+    }
+
     .spinner {
       width: 26px;
       height: 26px;
@@ -321,6 +382,10 @@
   <div class="header-right">
     <span class="status-dot" id="dot"></span>
     <span id="conn-status">connecting…</span>
+  </div>
+  <div class="tabs" id="tabs">
+    <button class="tab-btn active" data-tab="board">Board</button>
+    <button class="tab-btn" data-tab="graph">Graph</button>
   </div>
 </header>
 
@@ -357,6 +422,14 @@
     </div>
     <div class="cards" id="c-Done"></div>
   </div>
+</div>
+
+<div id="graph">
+  <div class="graph-toolbar">
+    <button class="graph-refresh-btn" id="graph-refresh-btn">↻ Refresh</button>
+    <span class="graph-loading" id="graph-loading" style="display:none">Rendering…</span>
+  </div>
+  <div id="graph-inner"></div>
 </div>
 
 <script>
@@ -529,6 +602,7 @@ function connectSSE() {
     const data = JSON.parse(e.data)
     projects = data.projects ?? []
     render()
+    if (activeTab === 'graph') renderGraph()
     if (overlay && !overlay.classList.contains('fade')) {
       overlay.classList.add('fade')
       setTimeout(() => overlay.remove(), 350)
@@ -546,6 +620,63 @@ function connectSSE() {
 setInterval(render, 60000)
 
 connectSSE()
+
+// ── Mermaid setup ─────────────────────────────────────────────────────────
+const mermaidScript = document.createElement('script')
+mermaidScript.src = '/web/mermaid.min.js'
+mermaidScript.onload = () => {
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: 'dark',
+    themeVariables: {
+      background:          '#0d1117',
+      mainBkg:             '#161b22',
+      nodeBorder:          '#30363d',
+      lineColor:           '#7d8590',
+      clusterBkg:          '#0d1117',
+      clusterBorder:       '#30363d',
+      titleColor:          '#e6edf3',
+      edgeLabelBackground: '#0d1117',
+      nodeTextColor:       '#e6edf3',
+    }
+  })
+}
+document.head.appendChild(mermaidScript)
+
+let activeTab = 'board'
+let graphRendering = false
+
+async function renderGraph() {
+  if (graphRendering) return
+  graphRendering = true
+  const loadingEl = document.getElementById('graph-loading')
+  loadingEl.style.display = 'inline'
+  try {
+    const dsl = await fetch('/api/graph').then(r => r.text())
+    const id = 'kg-' + Date.now()
+    const { svg } = await mermaid.render(id, dsl)
+    document.getElementById('graph-inner').innerHTML = svg
+  } catch (err) {
+    document.getElementById('graph-inner').textContent = 'Render error: ' + err.message
+  } finally {
+    loadingEl.style.display = 'none'
+    graphRendering = false
+  }
+}
+
+document.getElementById('tabs').addEventListener('click', e => {
+  const btn = e.target.closest('.tab-btn')
+  if (!btn) return
+  const tab = btn.dataset.tab
+  if (tab === activeTab) return
+  activeTab = tab
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab))
+  document.getElementById('board').style.display = tab === 'board' ? '' : 'none'
+  document.getElementById('graph').style.display = tab === 'graph' ? 'flex' : 'none'
+  if (tab === 'graph') renderGraph()
+})
+
+document.getElementById('graph-refresh-btn').addEventListener('click', renderGraph)
 </script>
 </body>
 </html>
