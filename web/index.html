@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Claude Projects</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@300;400;600;700&display=swap">
   <style>
     :root {
       --bg:          #0d1117;
@@ -23,6 +26,7 @@
       --radius: 8px;
       --font-mono: 'SF Mono', 'Cascadia Code', Menlo, Monaco, 'Courier New', monospace;
       --font-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      --font-cosmos: 'Oxanium', 'Exo 2', var(--font-mono);
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -465,7 +469,7 @@
       left: 50%;
       transform: translateX(-50%);
       font-size: 9px;
-      font-family: var(--font-mono);
+      font-family: var(--font-cosmos);
       color: rgba(255,200,70,0.65);
       letter-spacing: 0.14em;
       text-transform: uppercase;
@@ -595,7 +599,7 @@
       position: absolute;
       white-space: nowrap;
       font-size: 10px;
-      font-family: var(--font-mono);
+      font-family: var(--font-cosmos);
       font-weight: 600;
       pointer-events: none;
       text-shadow: 0 1px 5px rgba(0,0,0,1), 0 0 10px rgba(0,0,0,0.9);
@@ -616,7 +620,7 @@
     .fun-moon-label {
       position: absolute;
       font-size: 8px;
-      font-family: var(--font-mono);
+      font-family: var(--font-cosmos);
       color: rgba(160,180,200,0.75);
       white-space: nowrap;
       pointer-events: none;
@@ -646,7 +650,7 @@
       border-radius: 8px;
       padding: 10px 14px;
       font-size: 11px;
-      font-family: var(--font-mono);
+      font-family: var(--font-cosmos);
       color: var(--text);
       pointer-events: none;
       z-index: 200;
@@ -674,12 +678,13 @@
       bottom: 16px;
       left: 18px;
       z-index: 30;
-      background: rgba(10,14,22,0.82);
-      border: 1px solid var(--border);
+      background: rgba(10,14,22,0.88);
+      border: 1px solid rgba(255,255,255,0.08);
       border-radius: 7px;
       padding: 9px 13px;
       font-size: 10px;
-      font-family: var(--font-mono);
+      font-family: var(--font-cosmos);
+      box-shadow: 0 0 12px rgba(0,0,0,0.5);
       color: var(--text-muted);
       display: flex;
       flex-direction: column;
@@ -687,10 +692,11 @@
     }
     #fun-legend-title {
       font-size: 9px;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.14em;
       text-transform: uppercase;
-      color: var(--text-subtle);
+      color: rgba(160,180,200,0.6);
       margin-bottom: 2px;
+      font-family: var(--font-cosmos);
     }
     .fun-legend-item {
       display: flex;
@@ -707,6 +713,18 @@
     .fun-legend-dot.ld-paused  { background: #c9982a; opacity: 0.5; }
     .fun-legend-dot.ld-done    { background: #8b949e; opacity: 0.35; }
     .fun-legend-dot.ld-moon    { background: #8a96a4; width: 7px; height: 7px; }
+    .fun-legend-divider { height: 1px; background: rgba(255,255,255,0.06); margin: 3px 0; }
+    .fun-legend-hint { font-size: 9px; color: rgba(120,140,160,0.7); gap: 6px; }
+    .fun-legend-hint-row {
+      font-size: 9px; color: rgba(120,140,160,0.55);
+      font-family: var(--font-cosmos); letter-spacing: 0.02em;
+      padding-top: 1px; line-height: 1.5;
+    }
+    .fun-legend-beacon-preview {
+      display: inline-block; width: 10px; height: 10px; border-radius: 50%;
+      border: 1.5px solid rgba(63,185,80,0.6); flex-shrink: 0;
+      animation: beacon-expand 2.6s ease-out infinite;
+    }
 
     /* ── Focused mode ── */
     #fun.fun--focused #fun-scene { transition: opacity 0.2s; }
@@ -721,7 +739,7 @@
       border-radius: 6px;
       color: var(--text-muted);
       font-size: 12px;
-      font-family: var(--font-mono);
+      font-family: var(--font-cosmos);
       padding: 6px 12px;
       cursor: pointer;
       transition: color 0.15s, border-color 0.15s;
@@ -777,10 +795,12 @@
     .fun-panel-name {
       font-size: 16px;
       font-weight: 600;
+      font-family: var(--font-cosmos);
     }
     .fun-panel-row {
       font-size: 11px;
       color: var(--text-muted);
+      font-family: var(--font-cosmos);
       display: flex;
       flex-direction: column;
       gap: 2px;
@@ -817,6 +837,7 @@
       color: var(--text-subtle);
       margin-top: 4px;
       margin-bottom: 2px;
+      font-family: var(--font-cosmos);
     }
 
     .fun-satellite-card {
@@ -826,6 +847,7 @@
       padding: 7px 10px;
       font-size: 11px;
       color: var(--text-muted);
+      font-family: var(--font-cosmos);
       cursor: pointer;
       transition: background 0.12s, border-color 0.12s;
       margin-bottom: 4px;
@@ -839,9 +861,102 @@
       margin-top: 5px;
       font-size: 10px;
       color: var(--text-subtle);
-      font-family: var(--font-mono);
+      font-family: var(--font-cosmos);
       word-break: break-all;
     }
+
+    /* ── Recency arc ring ── */
+    .fun-recency-ring { position: absolute; border-radius: 50%; pointer-events: none; }
+
+    /* ── Active agent beacon rings ── */
+    .fun-beacon-ring {
+      position: absolute; border-radius: 50%;
+      border: 1.5px solid rgba(63, 185, 80, 0.55);
+      pointer-events: none;
+      animation: beacon-expand 2.6s ease-out infinite;
+    }
+    @keyframes beacon-expand {
+      0%   { transform: scale(1);   opacity: 0.6; }
+      100% { transform: scale(2.5); opacity: 0; }
+    }
+
+    /* ── Time-ago micro-label ── */
+    .fun-last-active {
+      position: absolute; font-family: var(--font-cosmos); font-size: 8px;
+      color: rgba(120, 140, 160, 0.65); white-space: nowrap;
+      pointer-events: none; letter-spacing: 0.05em;
+    }
+
+    /* ── Branch badge pill ── */
+    .fun-branch-badge {
+      position: absolute; font-family: var(--font-cosmos); font-size: 7px;
+      font-weight: 600; letter-spacing: 0.06em;
+      background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 3px; padding: 1px 4px; white-space: nowrap;
+      pointer-events: none; opacity: 0.75;
+    }
+
+    /* ── Status filter legend ── */
+    .fun-legend-item[data-filter] { cursor: pointer; transition: opacity 0.2s; }
+    .fun-legend-item[data-filter].legend-off { opacity: 0.3; }
+
+    /* ── Status-colored orbit rings ── */
+    .fun-orbit-ring[data-status="Active"]       { border-color: rgba(63,185,80,0.09); }
+    .fun-orbit-ring[data-status="Needs-Review"] { border-color: rgba(56,139,253,0.08); }
+
+    /* ── Extra nebula blobs ── */
+    .fun-nebula-extra {
+      position: absolute; border-radius: 50%; pointer-events: none;
+    }
+
+    #cosmos-timeline {
+      position: absolute; bottom: 0; left: 50%; width: min(680px, 88%);
+      transform: translateX(-50%) translateY(100%);
+      background: rgba(10,15,25,0.94); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px 10px 0 0; padding: 14px 20px 18px;
+      font-family: var(--font-cosmos); color: var(--text-main);
+      transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+      z-index: 60; pointer-events: auto;
+    }
+    #cosmos-timeline.visible { transform: translateX(-50%) translateY(0); }
+    #cosmos-timeline h4 { margin: 0 0 10px; font-size: 11px; letter-spacing: 0.12em;
+      text-transform: uppercase; color: rgba(255,255,255,0.5); }
+    #cosmos-timeline .tl-row { display: flex; align-items: center; gap: 10px; }
+    #cosmos-timeline input[type=range] { flex: 1; accent-color: #3fb950; cursor: pointer; }
+    #cosmos-timeline .tl-label { font-size: 11px; color: var(--text-muted); min-width: 80px; text-align: right; }
+    #cosmos-timeline .tl-counter { font-size: 13px; font-weight: 600; min-width: 60px; }
+    #cosmos-timeline .tl-btns { display: flex; gap: 8px; margin-top: 10px; }
+    #cosmos-timeline button {
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 5px; color: var(--text-main); font-family: var(--font-cosmos);
+      font-size: 11px; padding: 4px 10px; cursor: pointer; transition: background 0.15s;
+    }
+    #cosmos-timeline button:hover { background: rgba(255,255,255,0.12); }
+    #cosmos-timeline button.tl-active { background: rgba(63,185,80,0.2); border-color: rgba(63,185,80,0.4); }
+    #cosmos-timeline .tl-info {
+      display: flex; align-items: center; gap: 10px; margin-top: 6px;
+      min-height: 16px; font-size: 10px; font-family: var(--font-mono);
+      color: var(--text-muted); overflow: hidden;
+    }
+    #cosmos-timeline .tl-info-branch {
+      color: #58a6ff; flex-shrink: 0; max-width: 120px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    #cosmos-timeline .tl-info-hash {
+      color: var(--text-subtle); flex-shrink: 0; font-size: 9px; letter-spacing: 0.04em;
+    }
+    #cosmos-timeline .tl-info-msg {
+      color: var(--text-muted); flex: 1;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; opacity: 0.8;
+    }
+    .fun-history-btn {
+      position: absolute; left: 130px; top: 16px;
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 6px; color: var(--text-muted); font-family: var(--font-cosmos);
+      font-size: 11px; letter-spacing: 0.06em; padding: 5px 12px; cursor: pointer;
+      transition: all 0.15s; z-index: 20;
+    }
+    .fun-history-btn:hover { background: rgba(255,255,255,0.12); color: var(--text-main); }
   </style>
 </head>
 <body>
@@ -911,7 +1026,10 @@
 <!-- FUN TAB: THE SPACE WORLD -->
 <div id="fun">
   <canvas id="fun-stars"></canvas>
-  <div id="fun-nebula"></div>
+  <div id="fun-nebula">
+    <div class="fun-nebula-extra" style="width:500px;height:380px;top:55%;right:25%;background:radial-gradient(ellipse,rgba(139,92,246,0.04) 0%,transparent 70%);filter:blur(80px)"></div>
+    <div class="fun-nebula-extra" style="width:400px;height:350px;top:20%;right:15%;background:radial-gradient(ellipse,rgba(0,204,214,0.032) 0%,transparent 70%);filter:blur(90px)"></div>
+  </div>
   <!-- Decorative orbit rings (injected by JS) -->
   <div id="fun-rings"></div>
   <!-- Central star -->
@@ -930,13 +1048,35 @@
   </div>
   <!-- Legend -->
   <div id="fun-legend">
-    <div id="fun-legend-title">Cosmos Legend</div>
-    <div class="fun-legend-item"><div class="fun-legend-dot ld-active"></div>Active — orbiting fast</div>
-    <div class="fun-legend-item"><div class="fun-legend-dot ld-review"></div>Needs Review — scanning</div>
-    <div class="fun-legend-item"><div class="fun-legend-dot ld-paused"></div>Paused — sleeping</div>
-    <div class="fun-legend-item"><div class="fun-legend-dot ld-done"></div>Done — drifting dark</div>
-    <div class="fun-legend-item"><div class="fun-legend-dot ld-moon"></div>Moons = Worktrees</div>
-    <div class="fun-legend-item" style="gap:6px"><span style="font-size:12px">👨‍🚀</span> = Agents</div>
+    <div id="fun-legend-title">Cosmos Legend · click to filter</div>
+    <div class="fun-legend-item" data-filter="Active"><div class="fun-legend-dot ld-active"></div>Active — orbiting fast</div>
+    <div class="fun-legend-item" data-filter="Needs Review"><div class="fun-legend-dot ld-review"></div>Needs Review — scanning</div>
+    <div class="fun-legend-item" data-filter="Paused"><div class="fun-legend-dot ld-paused"></div>Paused — sleeping</div>
+    <div class="fun-legend-item" data-filter="Done"><div class="fun-legend-dot ld-done"></div>Done — drifting dark</div>
+    <div class="fun-legend-divider"></div>
+    <div class="fun-legend-item"><div class="fun-legend-dot ld-moon"></div>Moon = Worktree</div>
+    <div class="fun-legend-item" style="gap:6px"><span style="font-size:11px">👨‍🚀</span>Astronaut = Agent</div>
+    <div class="fun-legend-item fun-legend-hint"><span class="fun-legend-beacon-preview"></span>Pulsing ring = live agent</div>
+    <div class="fun-legend-hint-row">5m / 2h / 4d = last active · branch pill = non-main</div>
+  </div>
+  <div id="cosmos-timeline">
+    <h4>⎇ Git Timeline</h4>
+    <div class="tl-row">
+      <span class="tl-counter" id="tl-counter">1 / 1</span>
+      <input type="range" id="tl-slider" min="0" max="0" value="0">
+      <span class="tl-label" id="tl-date">—</span>
+    </div>
+    <div class="tl-info" id="tl-info">
+      <span class="tl-info-branch" id="tl-info-branch"></span>
+      <span class="tl-info-hash"   id="tl-info-hash"></span>
+      <span class="tl-info-msg"    id="tl-info-msg"></span>
+    </div>
+    <div class="tl-btns">
+      <button id="tl-prev">◀ Prev</button>
+      <button id="tl-play" class="tl-active">▶ Play</button>
+      <button id="tl-next">Next ▶</button>
+      <button id="tl-exit" style="margin-left:auto">Exit Rewind ✕</button>
+    </div>
   </div>
 </div>
 
@@ -947,6 +1087,11 @@ const COLS = ['Active', 'Paused', 'Needs Review', 'Done']
 let projects = []
 let dragPath = null
 let selectedProject = null
+let filterSet = new Set(['Active', 'Paused', 'Needs Review', 'Done'])
+let rewindFrames = []
+let rewindIndex  = -1
+let rewindPlaying = false
+let rewindTimer   = null
 
 // ── Utilities ──────────────────────────────────────────────────────────────
 
@@ -1108,7 +1253,7 @@ function connectSSE() {
     projects = data.projects ?? []
     render()
     if (activeTab === 'graph') renderGraph()
-    if (activeTab === 'fun')   renderFun()
+    if (activeTab === 'fun' && rewindFrames.length === 0) renderFun()
     if (overlay && !overlay.classList.contains('fade')) {
       overlay.classList.add('fade')
       setTimeout(() => overlay.remove(), 350)
@@ -1125,9 +1270,9 @@ setInterval(render, 60000)
 connectSSE()
 
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && selectedProject) {
-    selectedProject = null
-    renderFun()
+  if (e.key === 'Escape') {
+    if (rewindFrames.length > 0) { exitRewindMode(); return }
+    if (selectedProject) { selectedProject = null; renderFun() }
   }
 })
 
@@ -1313,6 +1458,22 @@ function statusColor(status) {
 const AGENT_EMOJIS = ['👨‍🚀','👩‍🚀','🤖','👾','🛸','🧑‍🚀']
 function agentEmoji(i) { return AGENT_EMOJIS[i % AGENT_EMOJIS.length] }
 
+function recencyFraction(isoStr) {
+  if (!isoStr) return 0
+  const diff = Date.now() - new Date(isoStr).getTime()
+  return Math.max(0, Math.min(1, 1 - diff / (14 * 24 * 60 * 60 * 1000)))
+}
+
+function timeAgo(isoStr) {
+  if (!isoStr) return ''
+  const mins = Math.floor((Date.now() - new Date(isoStr).getTime()) / 60000)
+  if (mins < 1)   return 'now'
+  if (mins < 60)  return `${mins}m`
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return `${hours}h`
+  return `${Math.floor(hours / 24)}d`
+}
+
 // ── Main fun renderer ─────────────────────────────────────────────────────────
 // We inject one <style> block per render call containing all keyframes,
 // then clear the scene and build fresh DOM. Old style blocks are cleaned up.
@@ -1333,7 +1494,7 @@ function renderFun() {
   rings.innerHTML = ''
   popup.classList.remove('visible')
   funEl.classList.remove('fun--focused')
-  document.querySelectorAll('.fun-panel, .fun-back-btn').forEach(el => el.remove())
+  document.querySelectorAll('.fun-panel, .fun-back-btn, .fun-history-btn').forEach(el => el.remove())
   if (funStyleEl) { funStyleEl.remove(); funStyleEl = null }
 
   if (projects.length === 0) {
@@ -1384,6 +1545,8 @@ function renderFun() {
       `top:calc(50% - ${orbitR}px)`,
     ].join(';')
     rings.appendChild(ring)
+    ring.dataset.status = proj.status.replace(/\s+/g, '-')
+    if (!filterSet.has(proj.status)) return  // keep ring but hide planet
 
     // -- Orbit arm (rotates, carries planet) --
     const armId   = `fa${idx}`
@@ -1443,6 +1606,46 @@ function renderFun() {
       dur ? `animation:${labelKf} ${dur} linear infinite` : '',
     ].filter(Boolean).join(';')
     planet.appendChild(lbl)
+
+    // -- Active agent beacon rings --
+    const activeAgents = (proj.agent_details || []).filter(a => a.status === 'active').length
+    for (let ri = 0; ri < Math.min(activeAgents, 3); ri++) {
+      const beacon = document.createElement('div')
+      beacon.className = 'fun-beacon-ring'
+      beacon.style.cssText = [
+        `width:${pr * 2}px`, `height:${pr * 2}px`,
+        `left:0`, `top:0`, `animation-delay:${ri * 0.85}s`,
+      ].join(';')
+      planet.appendChild(beacon)
+    }
+
+    // -- Time-ago micro-label --
+    const ago = timeAgo(proj.last_session)
+    if (ago) {
+      const agoLbl = document.createElement('div')
+      agoLbl.className = 'fun-last-active'
+      agoLbl.textContent = ago
+      agoLbl.style.cssText = [
+        `left:${pr * 2 + 6}px`, `top:${pr + 5}px`,
+        dur ? `animation:${labelKf} ${dur} linear infinite` : '',
+      ].filter(Boolean).join(';')
+      planet.appendChild(agoLbl)
+    }
+
+    // -- Branch badge --
+    const branch = proj.git_branch
+    if (branch && branch !== 'main' && branch !== 'master') {
+      const badge = document.createElement('div')
+      badge.className = 'fun-branch-badge'
+      badge.textContent = branch.substring(0, 14)
+      badge.style.cssText = [
+        `left:50%`, `transform:translateX(-50%)`,
+        `top:${pr * 2 + 3}px`,
+        `color:${statusColor(proj.status)}`,
+        dur ? `animation:${labelKf} ${dur} linear infinite` : '',
+      ].filter(Boolean).join(';')
+      planet.appendChild(badge)
+    }
 
     // -- Moons (worktrees) --
     const moonOrbitR = pr + 18
@@ -1538,6 +1741,88 @@ function renderFun() {
   document.head.appendChild(funStyleEl)
 }
 
+// ── Rewind / Timeline ─────────────────────────────────────────────────────────
+
+async function enterRewindMode(proj) {
+  const res = await fetch(`/api/history?path=${encodeURIComponent(proj.path)}`)
+  const { frames } = await res.json()
+  if (!frames || frames.length === 0) return
+  rewindFrames = frames
+  rewindIndex  = frames.length - 1
+  buildRewindBar(proj, frames)
+  scrubToFrame(rewindIndex)
+}
+
+function exitRewindMode() {
+  rewindFrames = []
+  rewindIndex  = -1
+  clearInterval(rewindTimer)
+  rewindPlaying = false
+  document.getElementById('cosmos-timeline').classList.remove('visible')
+  if (selectedProject) renderFocused(selectedProject)
+}
+
+function scrubToFrame(idx) {
+  rewindIndex = idx
+  const frame = rewindFrames[idx]
+  const synth = {
+    ...selectedProject,
+    session_count:  frame.commitCount,
+    git_branch:     frame.branch,
+    last_session:   frame.timestamp,
+    last_commit:    frame.message || null,
+    agent_details:  [],
+    worktrees:      frame.activeWorktrees.join(', '),
+  }
+  renderFocused(synth)
+  updateRewindBar(idx)
+}
+
+function buildRewindBar(proj, frames) {
+  const bar = document.getElementById('cosmos-timeline')
+  const slider = document.getElementById('tl-slider')
+  slider.max   = frames.length - 1
+  slider.value = frames.length - 1
+  slider.oninput = () => scrubToFrame(parseInt(slider.value))
+  document.getElementById('tl-prev').onclick = () => {
+    if (rewindIndex > 0) scrubToFrame(rewindIndex - 1)
+  }
+  document.getElementById('tl-next').onclick = () => {
+    if (rewindIndex < rewindFrames.length - 1) scrubToFrame(rewindIndex + 1)
+  }
+  document.getElementById('tl-play').onclick = () => {
+    rewindPlaying = !rewindPlaying
+    document.getElementById('tl-play').textContent = rewindPlaying ? '⏸ Pause' : '▶ Play'
+    document.getElementById('tl-play').classList.toggle('tl-active', rewindPlaying)
+    clearInterval(rewindTimer)
+    if (rewindPlaying) {
+      if (rewindIndex >= rewindFrames.length - 1) scrubToFrame(0)
+      rewindTimer = setInterval(() => {
+        if (rewindIndex < rewindFrames.length - 1) { scrubToFrame(rewindIndex + 1) }
+        else { clearInterval(rewindTimer); rewindPlaying = false; document.getElementById('tl-play').textContent = '▶ Play' }
+      }, 800)
+    }
+  }
+  document.getElementById('tl-exit').onclick = exitRewindMode
+  bar.classList.add('visible')
+}
+
+function updateRewindBar(idx) {
+  const frame = rewindFrames[idx]
+  document.getElementById('tl-counter').textContent = `${idx + 1} / ${rewindFrames.length}`
+  document.getElementById('tl-date').textContent    = frame ? timeAgo(frame.timestamp) + ' ago' : '—'
+  document.getElementById('tl-slider').value        = idx
+  // Info row
+  const branch  = frame?.branch  || ''
+  const hash    = frame?.hash    || ''
+  const message = frame?.message || ''
+  document.getElementById('tl-info-branch').textContent = branch  ? '⎇ ' + branch : ''
+  document.getElementById('tl-info-hash').textContent   = hash
+  document.getElementById('tl-info-msg').textContent    = message.length > 60
+    ? message.slice(0, 58) + '…'
+    : message
+}
+
 // ── Focused planet view ───────────────────────────────────────────────────────
 
 function renderFocused(proj) {
@@ -1550,7 +1835,7 @@ function renderFocused(proj) {
   scene.innerHTML = ''
   rings.innerHTML = ''
   popup.classList.remove('visible')
-  document.querySelectorAll('.fun-panel, .fun-back-btn').forEach(el => el.remove())
+  document.querySelectorAll('.fun-panel, .fun-back-btn, .fun-history-btn').forEach(el => el.remove())
   if (funStyleEl) { funStyleEl.remove(); funStyleEl = null }
   funEl.classList.add('fun--focused')
 
@@ -1727,8 +2012,22 @@ function renderFocused(proj) {
   const backBtn = document.createElement('button')
   backBtn.className = 'fun-back-btn'
   backBtn.textContent = '← Cosmos'
-  backBtn.addEventListener('click', () => { selectedProject = null; renderFun() })
+  backBtn.addEventListener('click', () => {
+    if (rewindFrames.length > 0) exitRewindMode()
+    selectedProject = null
+    document.getElementById('cosmos-timeline').classList.remove('visible')
+    renderFun()
+  })
   funEl.appendChild(backBtn)
+
+  // History (rewind) button
+  const histBtn = document.createElement('button')
+  histBtn.className = 'fun-history-btn'
+  histBtn.id = 'fun-history-btn'
+  histBtn.title = 'View session timeline'
+  histBtn.textContent = '⏪ Rewind'
+  histBtn.onclick = () => enterRewindMode(selectedProject)
+  funEl.appendChild(histBtn)
 
   // ── Left panel: project details ──
   const col = statusColor(proj.status)
@@ -1840,17 +2139,26 @@ function renderFocused(proj) {
 // ── Popup ─────────────────────────────────────────────────────────────────────
 
 function showPopup(proj, ev) {
-  const popup   = document.getElementById('fun-popup')
-  const agents  = parseAgentCount(proj.agents)
-  const moons   = parseWorktrees(proj.worktrees)
+  const popup    = document.getElementById('fun-popup')
+  const agents   = parseAgentCount(proj.agents)
+  const moons    = parseWorktrees(proj.worktrees)
+  const commit   = proj.last_commit
+    ? proj.last_commit.substring(0, 50) + (proj.last_commit.length > 50 ? '…' : '')
+    : null
+  const details  = Array.isArray(proj.agent_details) ? proj.agent_details : []
+  const activeN  = details.filter(a => a.status === 'active').length
+  const agentStr = agents > 0
+    ? (activeN > 0 ? `${agents} (${activeN} active)` : String(agents))
+    : null
   popup.innerHTML = `
     <div class="fun-popup-name" style="color:${statusColor(proj.status)}">${proj.name || shortPath(proj.path)}</div>
     <div class="fun-popup-row">Status&#58; <span>${proj.status || '—'}</span></div>
     <div class="fun-popup-row">Branch&#58; <span>${proj.git_branch || '—'}</span></div>
     <div class="fun-popup-row">Sessions&#58; <span>${proj.session_count ?? 0}</span></div>
     <div class="fun-popup-row">Last active&#58; <span>${relTime(proj.last_session) || '—'}</span></div>
-    ${agents > 0 ? `<div class="fun-popup-row">Agents&#58; <span>${proj.agents}</span></div>` : ''}
-    ${moons.length > 0 ? `<div class="fun-popup-row">Worktrees&#58; <span>${moons.join(', ')}</span></div>` : ''}
+    ${agentStr  ? `<div class="fun-popup-row">Agents&#58; <span>${agentStr}</span></div>` : ''}
+    ${moons.length > 0 ? `<div class="fun-popup-row">Worktrees&#58; <span>${moons.length}</span></div>` : ''}
+    ${commit    ? `<div class="fun-popup-row" style="margin-top:5px">Last commit&#58; <span style="color:var(--text-muted);font-size:9px">${commit}</span></div>` : ''}
     <div class="fun-popup-row" style="margin-top:5px;font-size:9px;color:var(--text-subtle)">${shortPath(proj.path)}</div>
   `
   movePopup(ev, document.getElementById('fun'))
@@ -1867,6 +2175,19 @@ function movePopup(ev, funEl) {
   popup.style.left = px + 'px'
   popup.style.top  = py + 'px'
 }
+
+function initLegendFilter() {
+  document.querySelectorAll('#fun-legend .fun-legend-item[data-filter]').forEach(item => {
+    item.addEventListener('click', () => {
+      const status = item.dataset.filter
+      if (filterSet.has(status)) { filterSet.delete(status); item.classList.add('legend-off') }
+      else                       { filterSet.add(status);    item.classList.remove('legend-off') }
+      if (!selectedProject) renderFun()
+    })
+  })
+}
+
+initLegendFilter()
 </script>
 </body>
 </html>
